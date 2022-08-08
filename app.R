@@ -11,32 +11,39 @@ library(shiny)
 library(dplyr)
 library(DT)
 library(data.table)
+library(shinyvalidate)
+library(bslib)
 
 # Load data --------------------------------------------------------------------
 
 source("define_players.R")
 source("spirit_info.R")
-mydata <- data.table(id = "test",
-                     val = "test")
+
+# mydata <- data.table(date = as.Date("20/05/22", format="%d/%m/%y"),
+#                     adversary = "None",
+#                     level = NA,
+#                     scenario = "None",
+#                     victory = TRUE,
+#                     invader_cards = 5,
+#                     dahan = 16,
+#                     blight = 2,
+#                     score = 27)
 
 # Load data --------------------------------------------------------------------
-
+# https://deanattali.com/blog/shiny-persistent-data-storage/
 # data <- readRDS("SpiritIsland.rds")
 
 saveData <- function(data) {
-  data <- as.data.frame(t(data))
-  if (exists("responses")) {
-    responses <<- rbind(responses, data)
-  } else {
-    responses <<- data
-  }
+  saveRDS(data, "data.rds")
 }
 
 loadData <- function() {
-  if (exists("responses")) {
-    responses
-  }
+  data <- readRDS("data.rds")
+  return(data)
 }
+
+mydata <- loadData()
+difficulty <- 0
 
 # Begin ------------------------------------------------------------------------
 
@@ -45,12 +52,17 @@ loadData <- function() {
 fields <- c("name", "used_shiny", "r_num_years")
 
 # Shiny app
-# https://shiny.rstudio.com/articles/layout-guide.html
+# https://shiny.rstudio.com/articles/layout-guide.html - layouts
+# https://shiny.rstudio.com/articles/html-tags.html - text formatting
+# https://shiny.rstudio.com/tutorial/written-tutorial/lesson3/ - widget types
 ui = fluidPage(
+  # theme = bs_theme(version = 5, bootswatch = "minty"),
   tabsetPanel(
     tabPanel("Enter results",
              titlePanel("Spirit Island"),
+             strong("Expansions:"),
              fluidRow(
+               id="expansions",
                #DT::dataTableOutput("responses", width = 300), tags$hr(),
                column(width=3,
                       checkboxInput(inputId="branch_claw",
@@ -66,6 +78,7 @@ ui = fluidPage(
                                     value=FALSE))
              ),
              fluidRow(
+               id="date_playercount",
                column(width=3,
                       dateInput(inputId="date",
                                 label="Date:",
@@ -82,7 +95,8 @@ ui = fluidPage(
              hr(),
              
              fluidRow(
-               column(width=2, offset=3,
+               id="invad_scen",
+               column(width=2,
                       numericInput(inputId="invader_cards",
                                    label="Invader Cards",
                                    value=0,
@@ -96,10 +110,22 @@ ui = fluidPage(
                       numericInput(inputId="blight",
                                    label="Blight",
                                    value=0,
-                                   min=0, max=52, step=1))
+                                   min=0, max=52, step=1)),
+               column(width=2,
+                      checkboxInput(inputId="blighted_island",
+                                    label="Blighted Island?",
+                                    value=FALSE)),
+               column(width=2,
+                      numericInput(inputId="fear_level",
+                                   label="Fear Level",
+                                   value=1,
+                                   min=1, max=4, step=1))
              ),
+             helpText("For a victory, count the invader cards remaining in the deck.",
+                      "For a defeat, count the invader cards *not* in the deck."),
              hr(),
              fluidRow(
+               id="victory",
                column(width=2, offset=4,
                       actionButton(inputId="victory",
                                    label="VICTORY!",
@@ -109,13 +135,16 @@ ui = fluidPage(
                                    label="Defeat :(",
                                    class="btn-danger"),)
              )), 
-    tabPanel("Score history", dataTableOutput("scores"))
+    tabPanel("Score history",
+             dataTableOutput("scores")
+             )
   )
   
 )
 
 
 server = function(input, output, session) {
+  iv <- InputValidator$new()
   
   ######################
   # Spirits and Boards #
@@ -172,11 +201,26 @@ server = function(input, output, session) {
              selectInput(inputId=paste0("board", x),
                          label="Board:",
                          choices=boards,
-                         selected=boards[x])
+                         selected=boards[x]),
+             # Power progressions?
+             renderUI({
+               if(input[[paste0("spirit", x)]] %in% names(aspect_list)){
+                 checkboxInput(inputId=paste0("powerprog",x),
+                               label="Power Progression?",
+                               value=FALSE)
+               }
+             })
       )
     })
+    interaction[["id"]] <- "players"
     do.call(fluidRow, interaction)
   })
+  observe(
+  for(x in 1:input$player_n) {
+    iv$add_rule(paste0("name", x), sv_required())
+  }
+  )
+  
   
   #############################
   # Adversaries and Scenarios #
@@ -201,28 +245,48 @@ server = function(input, output, session) {
       column(width=3,
              selectInput(inputId="adversary",
                          label="Adversary:",
-                         choices=adversaries)
+                         choices=names(adversaries))
              ),
       # Level
       renderUI({
         column(width=2,
                if(input$adversary != "None") {
                  numericInput(inputId="adv_level",
-                              label="Level",
+                              label="Level:",
                               value=0,
-                              min=0,
-                              max=6,
-                              step=1)
+                              min=0, max=6, step=1)
+               } else {
+                 numericInput(inputId="adv_level",
+                              label="Level:",
+                              value=0,
+                              min=0, max=0)
                })
              }),
       # Scenario
       column(width=4,
              selectInput(inputId="scenario",
                          label="Scenario:",
-                         choices=scenarios)
-      )
+                         choices=names(scenarios))
+      ),
+      # Difficulty calculation
+      renderUI({
+        adv_diff <- adversaries[[input$adversary]][input$adv_level + 1]
+        scen_diff <- scenarios[[input$scenario]]
+        difficulty <<- adv_diff + scen_diff
+        column(width=2,
+               # https://community.rstudio.com/t/fluidrow-and-column-add-border-to-the-respective-block/13187/2
+               style = "background-color: whitesmoke;",
+               strong("Difficulty:"),
+               helpText(difficulty))
+      })
     )
   })
+  
+  ####################
+  # Input Validation #
+  ####################
+  
+
   
   # Whenever a field is filled, aggregate all form data
   # formData <- reactive({
@@ -230,24 +294,92 @@ server = function(input, output, session) {
   #   # data
   #   return(input)
   # })
+  
+  gen_players <- function(input) {
+    players <- data.table(
+      name = character(),
+      spirit = character(),
+      aspect = character(),
+      board = character(),
+      power_prog = character()
+    )
+    for (i in 1:8){
+      if(i <= input$player_n) {
+        player_i <- data.table(
+          name = input[[paste0("name", i)]],
+          spirit = input[[paste0("spirit", i)]],
+          aspect = ifelse(
+            is.null(input[[paste0("aspect", i)]]),
+            NA,
+            input[[paste0("aspect", i)]]
+          ),
+          board = input[[paste0("board", i)]],
+          power_prog = input[[paste0("powerprog", i)]]
+        )
+      } else {
+        player_i <- data.table(
+          name = NA,
+          spirit = NA,
+          aspect = NA,
+          board = NA,
+          power_prog = NA
+        )
+      }
+      players <- rbind(players, player_i)
+    }
+    return(players)
+  }
 
-  # # When the Submit button is clicked, save the form data
-  # observeEvent(input$victory, {
-  #   saveData(formData())
-  # })
+  gen_datarow <- function(input, victory, score){
+    newrow = data.table(date = input$date,
+                        adversary = input$adversary,
+                        level = input$adv_level,
+                        scenario = input$scenario,
+                        victory = victory,
+                        invader_cards = input$invader_cards,
+                        dahan = input$dahan,
+                        blight = input$blight,
+                        score = score)
+    return(newrow)
+  }
+
+  # When the Submit button is clicked, save the form data
+  observeEvent(input$victory, {
+    if(input$victory>0){
+      score <- (5 * difficulty) + 10 + (2 * input$invader_cards) +
+        floor(input$dahan/input$player_n) - floor(input$blight/input$player_n)
+      newrow <- gen_datarow(input, victory=TRUE, score=score)
+      players <- gen_players(input)
+      print(players)
+      mydata <<- rbind(mydata, newrow)
+    }
+    saveData(mydata)
+  })
+  
+  observeEvent(input$defeat, {
+    if(input$defeat>0){
+      score <- (2 * difficulty) + input$invader_cards +
+        floor(input$dahan/input$player_n) - floor(input$blight/input$player_n)
+      newrow <- gen_datarow(input, victory=FALSE, score=score)
+      players <- gen_players(input)
+      mydata <<- rbind(mydata, newrow)
+    }
+    saveData(mydata)
+  })
+  
+  
 
   # Show the previous responses
   # (update with current response when Submit is clicked)
   # https://stackoverflow.com/a/40812507
-  output$scores <- DT::renderDataTable(df())
-  df <- eventReactive(input$victory, {
-    if(input$victory>0){
-      newrow = data.table(id = input$name1,
-                          val = input$spirit1)
-      mydata <<- rbind(mydata, newrow)
-    }
-    mydata
-    }, ignoreNULL = FALSE)
+  output$scores <- DT::renderDataTable(df(),
+                                       options=list(
+                                         order
+                                       ))
+  df <- eventReactive(c(input$victory, input$defeat), 
+                      mydata, ignoreNULL = FALSE)
+  
+  iv$enable()
 }
 
 
