@@ -14,42 +14,41 @@ library(data.table)
 library(shinyvalidate)
 library(bslib)
 
-# Load data --------------------------------------------------------------------
+# Spirit info ------------------------------------------------------------------
 
-source("define_players.R")
+# source("define_players.R")
+
 source("spirit_info.R")
 
-# mydata <- data.table(date = as.Date("20/05/22", format="%d/%m/%y"),
-#                     adversary = "None",
-#                     level = NA,
-#                     scenario = "None",
-#                     victory = TRUE,
-#                     invader_cards = 5,
-#                     dahan = 16,
-#                     blight = 2,
-#                     score = 27)
+source("testdata.R")
 
-# Load data --------------------------------------------------------------------
+# Data functions ---------------------------------------------------------------
 # https://deanattali.com/blog/shiny-persistent-data-storage/
-# data <- readRDS("SpiritIsland.rds")
 
 saveData <- function(data) {
   saveRDS(data, "data.rds")
-}
+  }
 
 loadData <- function() {
   data <- readRDS("data.rds")
   return(data)
 }
 
-mydata <- loadData()
-difficulty <- 0
+loadcsv <- function(filepath) {
+  mydata <- read.csv(filepath, na.strings = "NA")
+  mydata$date <- as.Date(mydata$date, tryFormats = c("%Y-%m-%d", "%d/%m/%Y"))
+  mydata$id <- as.POSIXct(mydata$id, tryFormats = c("%Y-%m-%d", "%d/%m/%Y"))
+  return(mydata)
+}
 
+mydata <- loadData()
+mydata <- loadcsv("data.csv")
+# mydata <- read.csv("data.csv", na.strings="NA")
+# mydata$date <- as.Date(mydata$date, tryFormats = c("%Y-%m-%d", "%d/%m/%Y"))
+# mydata$id <- as.POSIXct(mydata$id, tryFormats = c("%Y-%m-%d", "%d/%m/%Y"))
+  
 # Begin ------------------------------------------------------------------------
 
-
-# Define the fields we want to save from the form
-fields <- c("name", "used_shiny", "r_num_years")
 
 # Shiny app
 # https://shiny.rstudio.com/articles/layout-guide.html - layouts
@@ -137,7 +136,15 @@ ui = fluidPage(
              )), 
     tabPanel("Score history",
              dataTableOutput("scores")
-             )
+    ),
+    tabPanel("Backup",
+             downloadButton("downloadData", "Download"),
+             fileInput("file1", "Choose CSV File",
+                       multiple = TRUE,
+                       accept = c("text/csv",
+                                  "text/comma-separated-values,text/plain",
+                                  ".csv"))
+    )
   )
   
 )
@@ -190,13 +197,13 @@ server = function(input, output, session) {
                          selected=unlist(spirits)[x]),
              # Aspects
              renderUI({
-             if((input$jagged_earth | input$feather_flame) & 
-                input[[paste0("spirit", x)]] %in% names(aspect_list)){
-               selectInput(inputId=paste0("aspect", x),
-                           label="Aspect:",
-                           choices=aspect_list[input[[paste0("spirit", x)]]]
-               )
-             }}),
+               if((input$jagged_earth | input$feather_flame) & 
+                  input[[paste0("spirit", x)]] %in% names(aspect_list)){
+                 selectInput(inputId=paste0("aspect", x),
+                             label="Aspect:",
+                             choices=aspect_list[input[[paste0("spirit", x)]]]
+                 )
+               }}),
              # Board
              selectInput(inputId=paste0("board", x),
                          label="Board:",
@@ -216,9 +223,9 @@ server = function(input, output, session) {
     do.call(fluidRow, interaction)
   })
   observe(
-  for(x in 1:input$player_n) {
-    iv$add_rule(paste0("name", x), sv_required())
-  }
+    for(x in 1:input$player_n) {
+      iv$add_rule(paste0("name", x), sv_required())
+    }
   )
   
   
@@ -246,7 +253,7 @@ server = function(input, output, session) {
              selectInput(inputId="adversary",
                          label="Adversary:",
                          choices=names(adversaries))
-             ),
+      ),
       # Level
       renderUI({
         column(width=2,
@@ -261,7 +268,7 @@ server = function(input, output, session) {
                               value=0,
                               min=0, max=0)
                })
-             }),
+      }),
       # Scenario
       column(width=4,
              selectInput(inputId="scenario",
@@ -281,31 +288,23 @@ server = function(input, output, session) {
       })
     )
   })
-  
-  ####################
-  # Input Validation #
-  ####################
-  
 
   
-  # Whenever a field is filled, aggregate all form data
-  # formData <- reactive({
-  #   # data <- sapply(fields, function(x) input[[x]])
-  #   # data
-  #   return(input)
-  # })
-  
-  gen_players <- function(input) {
+  gen_players <- function(input, unique_id) {
     players <- data.table(
+      id = as.POSIXct(character()),
+      n = numeric(),
       name = character(),
       spirit = character(),
       aspect = character(),
       board = character(),
       power_prog = character()
     )
-    for (i in 1:8){
+    for (i in 1:6){
       if(i <= input$player_n) {
         player_i <- data.table(
+          id = unique_id,
+          n = i,
           name = input[[paste0("name", i)]],
           spirit = input[[paste0("spirit", i)]],
           aspect = ifelse(
@@ -318,6 +317,8 @@ server = function(input, output, session) {
         )
       } else {
         player_i <- data.table(
+          id = unique_id,
+          n = i,
           name = NA,
           spirit = NA,
           aspect = NA,
@@ -326,31 +327,51 @@ server = function(input, output, session) {
         )
       }
       players <- rbind(players, player_i)
+      players_wide <- dcast(players, formula = id ~ n, 
+                            value.var=list("name", "spirit", "aspect", "board", "power_prog"))
+      
     }
-    return(players)
+    return(players_wide)
   }
-
-  gen_datarow <- function(input, victory, score){
-    newrow = data.table(date = input$date,
+  
+  gen_datarow <- function(input, victory, score, difficulty){
+    unique_id <- Sys.time()
+    
+    players <- gen_players(input, unique_id)
+    
+    newrow = data.table(id = unique_id,
+                        date = input$date,
+                        n_players = input$player_n,
                         adversary = input$adversary,
                         level = input$adv_level,
                         scenario = input$scenario,
+                        difficulty = difficulty,
                         victory = victory,
                         invader_cards = input$invader_cards,
                         dahan = input$dahan,
                         blight = input$blight,
-                        score = score)
-    return(newrow)
+                        score = score,
+                        #invisible
+                        branch_claw = input$branch_claw,
+                        jagged_earth = input$jagged_earth,
+                        feather_flame = input$feather_flame,
+                        blighted_island = input$blighted_island,
+                        fear_level = input$fear_level
+    )
+    
+    row = merge.data.table(players, newrow, by.x=c("id"), by.y=c("id"))
+    return(row)
   }
-
+  
   # When the Submit button is clicked, save the form data
   observeEvent(input$victory, {
     if(input$victory>0){
       score <- (5 * difficulty) + 10 + (2 * input$invader_cards) +
         floor(input$dahan/input$player_n) - floor(input$blight/input$player_n)
-      newrow <- gen_datarow(input, victory=TRUE, score=score)
-      players <- gen_players(input)
-      print(players)
+      newrow <- gen_datarow(input, victory=TRUE, score=score, difficulty=difficulty)
+      print(mydata)
+      print(newrow)
+      
       mydata <<- rbind(mydata, newrow)
     }
     saveData(mydata)
@@ -360,24 +381,55 @@ server = function(input, output, session) {
     if(input$defeat>0){
       score <- (2 * difficulty) + input$invader_cards +
         floor(input$dahan/input$player_n) - floor(input$blight/input$player_n)
-      newrow <- gen_datarow(input, victory=FALSE, score=score)
-      players <- gen_players(input)
+      newrow <- gen_datarow(input, victory=FALSE, score=score, difficulty=difficulty)
+      
       mydata <<- rbind(mydata, newrow)
     }
     saveData(mydata)
   })
   
   
-
+  
   # Show the previous responses
   # (update with current response when Submit is clicked)
   # https://stackoverflow.com/a/40812507
   output$scores <- DT::renderDataTable(df(),
                                        options=list(
-                                         order
-                                       ))
-  df <- eventReactive(c(input$victory, input$defeat), 
-                      mydata, ignoreNULL = FALSE)
+                                         order=c(1, 'desc'),
+                                         pageLength=20))
+  
+  df <- eventReactive(c(input$victory, input$defeat), {
+    
+    paste_noNA <- function(x, sep=", ") {
+      gsub(", " , sep, toString(abbreviations[x[!is.na(x) & x!="" & x!="NA"]] ) )
+    }
+    
+    data <- data.frame(mydata)
+    data$spirits <- apply( data[, paste0("spirit_", c(1:6)) ], 1, paste_noNA, sep=", ")
+    data <- data %>% 
+      dplyr::relocate(spirits, .after=date) %>%
+      select(date, spirits, adversary, level, scenario, difficulty, victory, score)
+    return(data)
+  })
+  
+  
+  #######################
+  # Download and upload #
+  #######################
+  
+  # Download
+  output$downloadData <- downloadHandler(
+    filename = "spiritisland_data.csv",
+    content = function(file) {
+      write.csv(mydata, file, row.names = FALSE)
+    }
+  )
+  
+  # Upload
+  observeEvent(input$file1, {
+    mydata <<- loadcsv(input$file1$datapath)
+  })
+  
   
   iv$enable()
 }

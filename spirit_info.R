@@ -32,8 +32,8 @@ scenarios <- list("None"=0,
 # Expansion packs --------------------------------------------------------------
 
 # Branch and Claw
-bc_spirits <- list("Keeper of the Forbidden Wild",
-                   "Sharp Fangs behind the Leaves")
+bc_spirits <- list("Keeper of the Forbidden Wilds",
+                   "Sharp Fangs Behind the Leaves")
 
 bc_adversaries <- list("France"=c(0, 3, 5, 7, 8, 9, 10))
 
@@ -81,3 +81,32 @@ ff_adversaries <- list("Scotland"=c(0, 3, 4, 6, 7, 8, 10))
 
 ff_scenarios <- list("A Diversity of Spirits"=0,
                      "Varied Terrains"=2)
+
+
+# Shorthands -------------------------------------------------------------------
+
+abbreviations <- list("River Surges in Sunlight" = "RSS",
+                      "Vital Strength of the Earth" = "VSE",
+                      "Lightning's Swift Strike" = "LSS",
+                      "Shadows Flicker Like Flame" = "SFF",
+                      "Thunderspeaker" = "THS",
+                      "A Spread of Rampant Green" = "SRG",
+                      "Ocean's Hungry Grasp" = "OHG",
+                      "Bringer of Dreams and Nightmares" = "BDN",
+                      "Keeper of the Forbidden Wilds" = "KFW",
+                      "Sharp Fangs Behind the Leaves" = "SFL",
+                      "Stone's Unyielding Defiance" = "SUD",
+                      "Shifting Memory of Ages" = "SMA",
+                      "Grinning Trickster Stirs Up Trouble" = "GTT",
+                      "Lure of the Deep Wilderness" = "LDW",
+                      "Many Minds Move as One" = "MMM",
+                      "Volcano Looming High" = "VLH",
+                      "Shroud of Silent Mist" = "SSM",
+                      "Vengeance as a Burning Plague" = "VBP",
+                      "Starlight Seeks Its Form" = "SSF",
+                      "Fractured Days Split the Sky" = "FDS",
+                      "Heart of the Wildfire" = "HWF",
+                      "Serpent Slumbering Beneath the Island" = "SSB",
+                      "Downpour Drenches the World" = "DDW",
+                      "Finder of Paths Unseen" = "FPU"
+)
