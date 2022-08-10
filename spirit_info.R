@@ -110,3 +110,43 @@ abbreviations <- list("River Surges in Sunlight" = "RSS",
                       "Downpour Drenches the World" = "DDW",
                       "Finder of Paths Unseen" = "FPU"
 )
+
+# Colours ----------------------------------------------------------------------
+
+spirit_colours <- c(
+  "River Surges in Sunlight" = "darkturquoise",
+  "Vital Strength of the Earth" = "khaki4",
+  "Lightning's Swift Strike" = "gold",
+  "Shadows Flicker Like Flame" = "darkslategray",
+  "Thunderspeaker" = "black",
+  "A Spread of Rampant Green" = "darkgreen",
+  "Ocean's Hungry Grasp" = "darkblue",
+  "Bringer of Dreams and Nightmares" = "darkorchid4",
+  "Keeper of the Forbidden Wilds" = "lightgoldenrod3",
+  "Sharp Fangs Behind the Leaves" = "firebrick2",
+  "Stone's Unyielding Defiance" = "slategray2",
+  "Shifting Memory of Ages" = "rosybrown4",
+  "Grinning Trickster Stirs Up Trouble" = "mediumaquamarine",
+  "Lure of the Deep Wilderness" = "lightgoldenrod1",
+  "Many Minds Move as One" = "papayawhip",
+  "Volcano Looming High" = "grey20",
+  "Shroud of Silent Mist" = "lightcyan1",
+  "Vengeance as a Burning Plague" = "olivedrab1",
+  "Starlight Seeks Its Form" = "darkslateblue",
+  "Fractured Days Split the Sky" = "deepskyblue",
+  "Heart of the Wildfire" = "darkorange1",
+  "Serpent Slumbering Beneath the Island" = "darkolivegreen4",
+  "Downpour Drenches the World" = "darkorchid1",
+  "Finder of Paths Unseen" = "lightsteelblue3"
+)
+
+adversary_colours <- c(
+  "Brandenburg-Prussia" = "orange",
+  "England" = "red",
+  "Sweden" = "green",
+  "Scotland" = "blue",
+  "France" = "yellow",
+  "Hapsburg" = "purple",
+  "Russia" = "black"
+)
+

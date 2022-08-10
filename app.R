@@ -13,6 +13,7 @@ library(DT)
 library(data.table)
 library(shinyvalidate)
 library(bslib)
+library(plotly)
 
 # Spirit info ------------------------------------------------------------------
 
@@ -21,6 +22,8 @@ library(bslib)
 source("spirit_info.R")
 
 source("testdata.R")
+
+source("plots.R")
 
 # Data functions ---------------------------------------------------------------
 # https://deanattali.com/blog/shiny-persistent-data-storage/
@@ -136,6 +139,13 @@ ui = fluidPage(
              )), 
     tabPanel("Score history",
              dataTableOutput("scores")
+    ),
+    tabPanel(
+      fluidRow(
+        column(6, plotlyOutput("pop_spirit", inline=TRUE)),
+        column(6, plotlyOutput("diff_vs_score", inline=TRUE))
+      )
+      
     ),
     tabPanel("Backup",
              downloadButton("downloadData", "Download"),
@@ -411,6 +421,13 @@ server = function(input, output, session) {
       select(date, spirits, adversary, level, scenario, difficulty, victory, score)
     return(data)
   })
+  
+  #########
+  # Plots #
+  #########
+  
+  output$pop_spirit <- renderPlotly(popular_spirit(mydata))
+  output$diff_vs_score <- renderPlotly(difficulty_vs_score(mydata))
   
   
   #######################
