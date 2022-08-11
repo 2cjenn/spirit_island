@@ -113,6 +113,7 @@ abbreviations <- list("River Surges in Sunlight" = "RSS",
 
 # Colours ----------------------------------------------------------------------
 
+# https://www.datanovia.com/en/blog/awesome-list-of-657-r-color-names/
 spirit_colours <- c(
   "River Surges in Sunlight" = "darkturquoise",
   "Vital Strength of the Earth" = "khaki4",
@@ -140,7 +141,9 @@ spirit_colours <- c(
   "Finder of Paths Unseen" = "lightsteelblue3"
 )
 
+# https://community.plotly.com/t/plotly-colours-list/11730/3
 adversary_colours <- c(
+  "None" = "grey",
   "Brandenburg-Prussia" = "orange",
   "England" = "red",
   "Sweden" = "green",
@@ -150,3 +153,20 @@ adversary_colours <- c(
   "Russia" = "black"
 )
 
+# https://plotly-r.com/working-with-symbols.html
+scenario_symbols <- c(
+  "None" = "circle-dot",
+  "Blitz" = "diamond-tall-dot",
+  "Guard the Isle's Heart" = "square-dot",
+  "Rituals of Terror" = "cross-dot",
+  "Dahan Insurrection" = "x-dot",
+  "Second Wave" = "triangle-down-dot",
+  "Powers Long Forgotten" = "pentagon-dot",
+  "Ward the Shores" = "star-triangle-up-dot",
+  "Rituals of the Destroying Flame" = "star-dot",
+  "Elemental Invocation" = "hexagram-dot",
+  "Despicable Theft" = "star-square-dot",
+  "The Great River" = "diamond-wide-dot",
+  "A Diversity of Spirits" = "triangle-right-dot",
+  "Varied Terrain" = "hexagon-dot"
+)

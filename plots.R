@@ -3,6 +3,15 @@ library(tidyr)
 library(plotly)
 library(forcats)
 
+# loadcsv <- function(filepath) {
+#   mydata <- read.csv(filepath, na.strings = "NA")
+#   mydata$date <- as.Date(mydata$date, tryFormats = c("%Y-%m-%d", "%d/%m/%Y"))
+#   mydata$id <- as.POSIXct(mydata$id, tryFormats = c("%Y-%m-%d", "%d/%m/%Y"))
+#   return(mydata)
+# }
+# 
+# mydata <- loadcsv("data.csv")
+
 #-------------------------------------------------------------------------------
 
 # Most popular spirit
@@ -29,13 +38,19 @@ difficulty_vs_score <- function(mydata) {
   score <- mydata %>%
     mutate(score = score - ifelse(victory, 5*difficulty, 2*difficulty) - ifelse(victory, 10, 0)) %>%
     mutate(score = ifelse(victory, score, -score)) %>%
-    select(difficulty, adversary, scenario, score)
+    select(difficulty, adversary, level, scenario, score)
   
-  g <- ggplot(score, aes(x=difficulty, y=score, color=adversary, shape=scenario)) +
-    geom_point() +
-    scale_color_manual(values = adversary_colours, limits = names(adversary_colours))
-  return(ggplotly(g))
-}
+  plot_ly(data = score, y = ~score, x = ~difficulty, 
+          type = "scatter", mode = "markers",
+          color = ~adversary, colors = adversary_colours,
+          symbol = ~scenario, symbols = scenario_symbols,
+          hoverinfo = 'text', text = ~paste0(adversary, " L", level, ", ", scenario),
+          showlegend=FALSE) %>%
+    layout(title = "Score by difficulty",
+           yaxis = list(title = paste0("Score from invader cards, dahan and blight\n",
+                                       "Defeat                              Victory")),
+           xaxis = list(title = "Difficulty"))
+  }
 
 
 

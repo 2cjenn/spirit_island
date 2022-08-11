@@ -25,6 +25,8 @@ source("testdata.R")
 
 source("plots.R")
 
+source("utils.R")
+
 # Data functions ---------------------------------------------------------------
 # https://deanattali.com/blog/shiny-persistent-data-storage/
 
@@ -46,9 +48,6 @@ loadcsv <- function(filepath) {
 
 mydata <- loadData()
 mydata <- loadcsv("data.csv")
-# mydata <- read.csv("data.csv", na.strings="NA")
-# mydata$date <- as.Date(mydata$date, tryFormats = c("%Y-%m-%d", "%d/%m/%Y"))
-# mydata$id <- as.POSIXct(mydata$id, tryFormats = c("%Y-%m-%d", "%d/%m/%Y"))
   
 # Begin ------------------------------------------------------------------------
 
@@ -140,11 +139,9 @@ ui = fluidPage(
     tabPanel("Score history",
              dataTableOutput("scores")
     ),
-    tabPanel(
-      fluidRow(
-        column(6, plotlyOutput("pop_spirit", inline=TRUE)),
-        column(6, plotlyOutput("diff_vs_score", inline=TRUE))
-      )
+    tabPanel("Plots",
+      plotlyOutput("pop_spirit", inline=TRUE),
+      plotlyOutput("diff_vs_score", inline=TRUE)
       
     ),
     tabPanel("Backup",
@@ -379,8 +376,6 @@ server = function(input, output, session) {
       score <- (5 * difficulty) + 10 + (2 * input$invader_cards) +
         floor(input$dahan/input$player_n) - floor(input$blight/input$player_n)
       newrow <- gen_datarow(input, victory=TRUE, score=score, difficulty=difficulty)
-      print(mydata)
-      print(newrow)
       
       mydata <<- rbind(mydata, newrow)
     }
@@ -398,37 +393,36 @@ server = function(input, output, session) {
     saveData(mydata)
   })
   
+  #################
+  # Reactive data #
+  #################
   
+  df <- eventReactive(c(input$victory, input$defeat), {
+    data.frame(mydata)
+  })
   
   # Show the previous responses
   # (update with current response when Submit is clicked)
   # https://stackoverflow.com/a/40812507
-  output$scores <- DT::renderDataTable(df(),
-                                       options=list(
-                                         order=c(1, 'desc'),
-                                         pageLength=20))
-  
-  df <- eventReactive(c(input$victory, input$defeat), {
-    
-    paste_noNA <- function(x, sep=", ") {
-      gsub(", " , sep, toString(abbreviations[x[!is.na(x) & x!="" & x!="NA"]] ) )
-    }
-    
-    data <- data.frame(mydata)
+  output$scores <- DT::renderDataTable({
+    data <- df()
     data$spirits <- apply( data[, paste0("spirit_", c(1:6)) ], 1, paste_noNA, sep=", ")
     data <- data %>% 
       dplyr::relocate(spirits, .after=date) %>%
       select(date, spirits, adversary, level, scenario, difficulty, victory, score)
-    return(data)
-  })
+    data
+    },
+    options=list(
+      order=c(1, 'desc'),
+      pageLength=20)
+    )
   
   #########
   # Plots #
   #########
-  
-  output$pop_spirit <- renderPlotly(popular_spirit(mydata))
-  output$diff_vs_score <- renderPlotly(difficulty_vs_score(mydata))
-  
+
+  output$pop_spirit <- renderPlotly(popular_spirit(df()))
+  output$diff_vs_score <- renderPlotly(difficulty_vs_score(df()))
   
   #######################
   # Download and upload #
