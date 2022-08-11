@@ -141,7 +141,9 @@ ui = fluidPage(
     ),
     tabPanel("Plots",
       plotlyOutput("pop_spirit", inline=TRUE),
-      plotlyOutput("diff_vs_score", inline=TRUE)
+      plotlyOutput("diff_vs_score", inline=TRUE),
+      plotlyOutput("games_since_spirit", inline=TRUE),
+      plotlyOutput("games_since_adversary", inline=TRUE)
       
     ),
     tabPanel("Backup",
@@ -423,6 +425,8 @@ server = function(input, output, session) {
 
   output$pop_spirit <- renderPlotly(popular_spirit(df()))
   output$diff_vs_score <- renderPlotly(difficulty_vs_score(df()))
+  output$games_since_spirit <- renderPlotly(games_since_spirit(df()))
+  output$games_since_adversary <- renderPlotly(games_since_adversary(df()))
   
   #######################
   # Download and upload #

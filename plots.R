@@ -24,10 +24,13 @@ popular_spirit <- function(mydata) {
     count(spirit) %>%
     mutate(spirit = fct_reorder(spirit, n))
   
-  g <- ggplot(spirits, aes(x=spirit, y=n, fill = spirit)) + 
-    geom_bar(stat="identity") +
-    scale_fill_manual(values = spirit_colours, limits = names(spirit_colours))
-  return(ggplotly(g))
+  plot_ly(
+    data = spirits,
+    x = ~spirit, y = ~n,
+    color = ~spirit, colors = spirit_colours,
+    type = "bar"
+  ) %>%
+    layout(title = "Popularity of each spirit")
 }
 
 #-------------------------------------------------------------------------------
@@ -50,11 +53,56 @@ difficulty_vs_score <- function(mydata) {
            yaxis = list(title = paste0("Score from invader cards, dahan and blight\n",
                                        "Defeat                              Victory")),
            xaxis = list(title = "Difficulty"))
-  }
+}
 
 
+#-------------------------------------------------------------------------------
 
+# Haven't used in a while
 
+games_since_spirit <- function(mydata) {
+  time <- mydata %>%
+    mutate(time = difftime(Sys.Date(), date)) %>%
+    select(id, starts_with("spirit"), time) %>%
+    pivot_longer(cols=paste0("spirit_", 1:6), values_to="spirit") %>%
+    filter(!is.na(spirit) & spirit != "") %>%
+    group_by(spirit) %>%
+    slice_min(time, n=1, with_ties=FALSE) %>%
+    ungroup %>%
+    mutate(spirit = fct_reorder(spirit, time))
+  
+  plot_ly(
+    data = time,
+    y = ~spirit, x = ~time,
+    color = ~spirit, colors = spirit_colours,
+    type = "bar",
+    orientation = "h"
+  ) %>%
+    layout(title = "Time since playing each spirit")
+  
+}
+
+games_since_adversary <- function(mydata) {
+  time <- mydata %>%
+    mutate(time = difftime(Sys.Date(), date)) %>%
+    select(id, adversary, time) %>%
+    filter(adversary != "None") %>%
+    group_by(adversary) %>%
+    slice_min(time, n=1, with_ties=FALSE) %>%
+    ungroup %>%
+    mutate(adversary = fct_reorder(adversary, time))
+  
+  plot_ly(
+    data = time,
+    y = ~adversary, x = ~time,
+    color = ~adversary, colors = adversary_colours,
+    type = "bar",
+    orientation = "h",
+    showlegend=FALSE
+  ) %>%
+    layout(title = "Time since playing each adversary")
+  
+}
 
 
 
