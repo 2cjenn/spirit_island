@@ -15,6 +15,8 @@ library(shinyvalidate)
 library(bslib)
 library(plotly)
 
+options(shiny.reactlog=TRUE)
+
 # Spirit info ------------------------------------------------------------------
 
 # source("define_players.R")
@@ -46,8 +48,10 @@ loadcsv <- function(filepath) {
   return(mydata)
 }
 
-mydata <- loadData()
+# mydata <- loadData()
 mydata <- loadcsv("data.csv")
+# player_data <- players_long(mydata)
+
   
 # Begin ------------------------------------------------------------------------
 
@@ -140,10 +144,12 @@ ui = fluidPage(
              dataTableOutput("scores")
     ),
     tabPanel("Plots",
-      plotlyOutput("pop_spirit", inline=TRUE),
-      plotlyOutput("diff_vs_score", inline=TRUE),
-      plotlyOutput("games_since_spirit", inline=TRUE),
-      plotlyOutput("games_since_adversary", inline=TRUE)
+             uiOutput("select_player"),
+             
+              plotlyOutput("pop_spirit", inline=TRUE),
+              plotlyOutput("diff_vs_score", inline=TRUE),
+              plotlyOutput("games_since_spirit", inline=TRUE),
+              plotlyOutput("games_since_adversary", inline=TRUE)
       
     ),
     tabPanel("Backup",
@@ -422,11 +428,35 @@ server = function(input, output, session) {
   #########
   # Plots #
   #########
+  
+  output$select_player <- renderUI({
+    data <- df()
+    
+    players <- data %>%
+      select(id, starts_with("name")) %>%
+      pivot_longer(cols=paste0("name_", 1:6)) %>%
+      filter(!is.na(value) & value != "")
+    
+    selectInput(inputId="filter_player",
+                label="Player:",
+                choices=c("All", unique(players$value)),
+                selected="All")
+  })
+  
+  
+  df_player <- eventReactive(c(input$victory, input$defeat, input$filter_player), {
+    data <- players_long(mydata)
+    if(input$filter_player != "All") {
+      data <- data %>%
+        filter(name == input$filter_player)
+    }
+    return(data)
+  }, ignoreInit=TRUE)
 
-  output$pop_spirit <- renderPlotly(popular_spirit(df()))
-  output$diff_vs_score <- renderPlotly(difficulty_vs_score(df()))
-  output$games_since_spirit <- renderPlotly(games_since_spirit(df()))
-  output$games_since_adversary <- renderPlotly(games_since_adversary(df()))
+  output$pop_spirit <- renderPlotly(popular_spirit(df_player()))
+  # output$diff_vs_score <- renderPlotly(difficulty_vs_score(df_player()))
+  # output$games_since_spirit <- renderPlotly(games_since_spirit(df_player()))
+  # output$games_since_adversary <- renderPlotly(games_since_adversary(df_player()))
   
   #######################
   # Download and upload #

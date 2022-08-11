@@ -18,8 +18,6 @@ library(forcats)
 
 popular_spirit <- function(mydata) {
   spirits <- mydata %>% 
-    select(id, starts_with("spirit"), adversary) %>%
-    pivot_longer(cols=paste0("spirit_", 1:6), values_to="spirit") %>%
     filter(!is.na(spirit) & spirit != "") %>%
     count(spirit) %>%
     mutate(spirit = fct_reorder(spirit, n))
@@ -28,7 +26,8 @@ popular_spirit <- function(mydata) {
     data = spirits,
     x = ~spirit, y = ~n,
     color = ~spirit, colors = spirit_colours,
-    type = "bar"
+    type = "bar",
+    showlegend=FALSE
   ) %>%
     layout(title = "Popularity of each spirit")
 }
@@ -61,40 +60,37 @@ difficulty_vs_score <- function(mydata) {
 # Haven't used in a while
 
 games_since_spirit <- function(mydata) {
-  time <- mydata %>%
-    mutate(time = difftime(Sys.Date(), date)) %>%
-    select(id, starts_with("spirit"), time) %>%
-    pivot_longer(cols=paste0("spirit_", 1:6), values_to="spirit") %>%
+  games <- mydata %>%
     filter(!is.na(spirit) & spirit != "") %>%
     group_by(spirit) %>%
-    slice_min(time, n=1, with_ties=FALSE) %>%
+    slice_min(game, n=1, with_ties=FALSE) %>%
     ungroup %>%
-    mutate(spirit = fct_reorder(spirit, time))
+      mutate(spirit = fct_reorder(spirit, game))
   
   plot_ly(
-    data = time,
-    y = ~spirit, x = ~time,
+    data = games,
+    y = ~spirit, x = ~game,
     color = ~spirit, colors = spirit_colours,
     type = "bar",
-    orientation = "h"
+    orientation = "h",
+    showlegend=FALSE
   ) %>%
     layout(title = "Time since playing each spirit")
   
 }
 
 games_since_adversary <- function(mydata) {
-  time <- mydata %>%
-    mutate(time = difftime(Sys.Date(), date)) %>%
-    select(id, adversary, time) %>%
+  games <- mydata %>%
+    select(id, adversary, game) %>%
     filter(adversary != "None") %>%
     group_by(adversary) %>%
-    slice_min(time, n=1, with_ties=FALSE) %>%
+    slice_min(game, n=1, with_ties=FALSE) %>%
     ungroup %>%
-    mutate(adversary = fct_reorder(adversary, time))
+    mutate(adversary = fct_reorder(adversary, game))
   
   plot_ly(
-    data = time,
-    y = ~adversary, x = ~time,
+    data = games,
+    y = ~adversary, x = ~game,
     color = ~adversary, colors = adversary_colours,
     type = "bar",
     orientation = "h",
