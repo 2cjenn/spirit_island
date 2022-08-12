@@ -9,6 +9,7 @@
 
 library(shiny)
 library(dplyr)
+library(tidyr)
 library(DT)
 library(data.table)
 library(shinyvalidate)
@@ -50,7 +51,11 @@ loadcsv <- function(filepath) {
 
 # mydata <- loadData()
 mydata <- loadcsv("data.csv")
-# player_data <- players_long(mydata)
+
+players <- mydata %>%
+  select(id, starts_with("name")) %>%
+  pivot_longer(cols=paste0("name_", 1:6)) %>%
+  filter(!is.na(value) & value != "")
 
   
 # Begin ------------------------------------------------------------------------
@@ -144,12 +149,16 @@ ui = fluidPage(
              dataTableOutput("scores")
     ),
     tabPanel("Plots",
-             uiOutput("select_player"),
+             selectInput(inputId="filter_player",
+                         label="Player:",
+                         choices=c("All", unique(players$value)),
+                         selected="All"),
+             # uiOutput("select_player"),
              
-              plotlyOutput("pop_spirit", inline=TRUE),
-              plotlyOutput("diff_vs_score", inline=TRUE),
-              plotlyOutput("games_since_spirit", inline=TRUE),
-              plotlyOutput("games_since_adversary", inline=TRUE)
+             plotlyOutput("pop_spirit", inline=TRUE),
+             plotlyOutput("diff_vs_score", inline=TRUE),
+             plotlyOutput("games_since_spirit", inline=TRUE),
+             plotlyOutput("games_since_adversary", inline=TRUE)
       
     ),
     tabPanel("Backup",
@@ -428,35 +437,39 @@ server = function(input, output, session) {
   #########
   # Plots #
   #########
+
   
-  output$select_player <- renderUI({
-    data <- df()
-    
-    players <- data %>%
-      select(id, starts_with("name")) %>%
-      pivot_longer(cols=paste0("name_", 1:6)) %>%
-      filter(!is.na(value) & value != "")
-    
-    selectInput(inputId="filter_player",
-                label="Player:",
-                choices=c("All", unique(players$value)),
-                selected="All")
-  })
-  
-  
-  df_player <- eventReactive(c(input$victory, input$defeat, input$filter_player), {
+  df_player <- reactive({
     data <- players_long(mydata)
     if(input$filter_player != "All") {
       data <- data %>%
-        filter(name == input$filter_player)
+        filter(name == input$filter_player) %>%
+        arrange(desc(date)) %>%
+        mutate(game = seq.int(nrow(.)))
     }
     return(data)
-  }, ignoreInit=TRUE)
+  }) %>% 
+    bindEvent(input$victory, input$defeat, input$filter_player)
+  
+  observe({
+    players <- df() %>%
+      select(id, starts_with("name")) %>%
+      pivot_longer(cols=paste0("name_", 1:6)) %>%
+      filter(!is.na(value) & value != "")
 
-  output$pop_spirit <- renderPlotly(popular_spirit(df_player()))
-  # output$diff_vs_score <- renderPlotly(difficulty_vs_score(df_player()))
-  # output$games_since_spirit <- renderPlotly(games_since_spirit(df_player()))
-  # output$games_since_adversary <- renderPlotly(games_since_adversary(df_player()))
+    
+    # Can also set the label and select items
+    updateSelectInput(session, "filter_player",
+                      choices = c("All", unique(players$value),
+                      selected = "All")
+    )
+  })
+
+
+  output$pop_spirit <- renderPlotly(popular_spirit(df_player())) 
+  output$diff_vs_score <- renderPlotly(difficulty_vs_score(df_player()))
+  output$games_since_spirit <- renderPlotly(games_since_spirit(df_player()))
+  output$games_since_adversary <- renderPlotly(games_since_adversary(df_player()))
   
   #######################
   # Download and upload #
