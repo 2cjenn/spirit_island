@@ -63,6 +63,7 @@ players <- mydata %>%
 # https://shiny.rstudio.com/articles/layout-guide.html - layouts
 # https://shiny.rstudio.com/articles/html-tags.html - text formatting
 # https://shiny.rstudio.com/tutorial/written-tutorial/lesson3/ - widget types
+# https://github.com/rstudio/shiny/issues/1927 - keyboard in select on mobile
 ui = fluidPage(
   # theme = bs_theme(version = 5, bootswatch = "minty"),
   tabsetPanel(
@@ -160,7 +161,8 @@ ui = fluidPage(
              selectInput(inputId="filter_player",
                          label="Player:",
                          choices=c("All", unique(players$value)),
-                         selected="All"),
+                         selected="All",
+                         selectize=FALSE),
              
              plotlyOutput("pop_spirit", inline=TRUE),
              plotlyOutput("diff_vs_score", inline=TRUE),
@@ -225,21 +227,24 @@ server = function(input, output, session) {
              selectInput(inputId=paste0("spirit", x),
                          label="Spirit:",
                          choices=spirits,
-                         selected=unlist(spirits)[x]),
+                         selected=unlist(spirits)[x],
+                         selectize=FALSE),
              # Aspects
              renderUI({
                if((input$jagged_earth | input$feather_flame) & 
                   input[[paste0("spirit", x)]] %in% names(aspect_list)){
                  selectInput(inputId=paste0("aspect", x),
                              label="Aspect:",
-                             choices=aspect_list[input[[paste0("spirit", x)]]]
+                             choices=aspect_list[input[[paste0("spirit", x)]]],
+                             selectize=FALSE
                  )
                }}),
              # Board
              selectInput(inputId=paste0("board", x),
                          label="Board:",
                          choices=boards,
-                         selected=boards[x]),
+                         selected=boards[x],
+                         selectize=FALSE),
              # Power progressions?
              renderUI({
                if(input[[paste0("spirit", x)]] %in% names(aspect_list)){
@@ -283,7 +288,8 @@ server = function(input, output, session) {
       column(width=3,
              selectInput(inputId="adversary",
                          label="Adversary:",
-                         choices=names(adversaries))
+                         choices=names(adversaries),
+                         selectize=FALSE)
       ),
       # Level
       renderUI({
@@ -304,7 +310,8 @@ server = function(input, output, session) {
       column(width=4,
              selectInput(inputId="scenario",
                          label="Scenario:",
-                         choices=names(scenarios))
+                         choices=names(scenarios),
+                         selectize=FALSE)
       ),
       # Difficulty calculation
       renderUI({
@@ -404,6 +411,8 @@ server = function(input, output, session) {
       mydata <<- rbind(mydata, newrow)
     }
     saveData(mydata)
+    
+    showNotification(paste0("Well Done! Score of ", score, " recorded"))
   })
   
   observeEvent(input$defeat, {
@@ -415,6 +424,8 @@ server = function(input, output, session) {
       mydata <<- rbind(mydata, newrow)
     }
     saveData(mydata)
+    
+    showNotification(paste0("Better luck next time! Score of ", score, " recorded"))
   })
   
   #################
