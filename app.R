@@ -22,7 +22,7 @@ library(plotly)
 
 source("spirit_info.R")
 
-source("testdata.R")
+# source("testdata.R")
 
 source("plots.R")
 
@@ -350,11 +350,11 @@ server = function(input, output, session) {
         player_i <- data.table(
           id = unique_id,
           n = i,
-          name = NA,
-          spirit = NA,
-          aspect = NA,
-          board = NA,
-          power_prog = NA
+          name = "",
+          spirit = "",
+          aspect = "",
+          board = "",
+          power_prog = FALSE
         )
       }
       players <- rbind(players, player_i)
@@ -436,6 +436,7 @@ server = function(input, output, session) {
              branch_claw = ifelse(branch_claw == TRUE, "BC", NA),
              jagged_earth = ifelse(jagged_earth == TRUE, "JE", NA),
              feather_flame = ifelse(feather_flame == TRUE, "FF", NA))
+      
     
     for(i in 1:6) {
       power_prog_col <- paste0("power_prog_", i)
