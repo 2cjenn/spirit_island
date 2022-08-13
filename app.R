@@ -144,6 +144,16 @@ ui = fluidPage(
                                    class="btn-danger"),)
              )), 
     tabPanel("Score history",
+             selectInput(inputId="columns", 
+                         label="Select columns to display", 
+                         choices=c("date", "names", "spirits", "boards", "n_players",
+                                   "adversary", "level", "scenario", "difficulty",
+                                   "victory", "invader_cards", "dahan", "blight", "score",
+                                   "blighted_island", "fear_level", "expansions"),
+                         selected=c("date", "spirits", "adversary", "level", 
+                                    "scenario", "difficulty", "victory", "score"),
+                         multiple=TRUE),
+             
              dataTableOutput("scores")
     ),
     tabPanel("Plots",
@@ -151,7 +161,6 @@ ui = fluidPage(
                          label="Player:",
                          choices=c("All", unique(players$value)),
                          selected="All"),
-             # uiOutput("select_player"),
              
              plotlyOutput("pop_spirit", inline=TRUE),
              plotlyOutput("diff_vs_score", inline=TRUE),
@@ -421,11 +430,39 @@ server = function(input, output, session) {
   # https://stackoverflow.com/a/40812507
   output$scores <- DT::renderDataTable({
     data <- df()
+    
+    data <- data %>%
+      mutate(across(spirit_1:spirit_6, ~ifelse(.x=="", .x, abbreviations[.x])),
+             branch_claw = ifelse(branch_claw == TRUE, "BC", NA),
+             jagged_earth = ifelse(jagged_earth == TRUE, "JE", NA),
+             feather_flame = ifelse(feather_flame == TRUE, "FF", NA))
+    
+    for(i in 1:6) {
+      power_prog_col <- paste0("power_prog_", i)
+      spirit_col <- paste0("spirit_", i)
+      power_prog <- data[[power_prog_col]] == TRUE
+      if(any(power_prog)) {
+        data[power_prog,][[spirit_col]] <- paste0(data[power_prog,][[spirit_col]], "+")
+      }
+    }
+    
     data$spirits <- apply( data[, paste0("spirit_", c(1:6)) ], 1, paste_noNA, sep=", ")
+    data$names <- apply( data[, paste0("name_", c(1:6)) ], 1, paste_noNA, sep=", ")
+    data$boards <- apply( data[, paste0("board_", c(1:6)) ], 1, paste_noNA, sep=", ")
+    data$expansions <- apply( data[, c("branch_claw", "jagged_earth", "feather_flame")],
+                              1, paste_noNA, sep=", ")
     data <- data %>% 
-      dplyr::relocate(spirits, .after=date) %>%
-      select(date, spirits, adversary, level, scenario, difficulty, victory, score)
-    data
+      dplyr::relocate(names, .after=date) %>%
+      dplyr::relocate(spirits, .after=names) %>%
+      dplyr::relocate(boards, .after=spirits) %>%
+      select(-c(name_1:name_6, spirit_1:spirit_6, aspect_1:aspect_6, 
+                power_prog_1:power_prog_6, board_1:board_6,
+                branch_claw, jagged_earth, feather_flame))
+      # select(date, spirits, adversary, level, scenario, difficulty, victory, score)
+    if (!is.null(input$columns)) {
+      columns = input$columns
+    }
+    data[, columns]
     },
     options=list(
       order=c(1, 'desc'),
@@ -455,12 +492,10 @@ server = function(input, output, session) {
       pivot_longer(cols=paste0("name_", 1:6)) %>%
       filter(!is.na(value) & value != "")
 
-    
-    # Can also set the label and select items
     updateSelectInput(session, "filter_player",
-                      choices = c("All", unique(players$value),
+                      choices = c("All", unique(players$value)),
                       selected = "All")
-    )
+    
   })
 
 
@@ -492,3 +527,4 @@ server = function(input, output, session) {
 
 
 shinyApp(ui, server)
+
