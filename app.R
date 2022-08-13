@@ -8,15 +8,13 @@
 #
 
 library(shiny)
+library(shinyvalidate)
 library(dplyr)
 library(tidyr)
 library(DT)
 library(data.table)
-library(shinyvalidate)
 library(bslib)
 library(plotly)
-
-options(shiny.reactlog=TRUE)
 
 # Spirit info ------------------------------------------------------------------
 
@@ -49,8 +47,8 @@ loadcsv <- function(filepath) {
   return(mydata)
 }
 
-# mydata <- loadData()
-mydata <- loadcsv("data.csv")
+mydata <- loadData()
+# mydata <- loadcsv("data.csv")
 
 players <- mydata %>%
   select(id, starts_with("name")) %>%
