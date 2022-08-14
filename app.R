@@ -252,7 +252,26 @@ server = function(input, output, session) {
                                label="Power Progression?",
                                value=FALSE)
                }
-             })
+             }),
+             # Presence tracks
+             strong("Presence removed from tracks:"),
+             fluidRow(
+               column(width=3,
+                      numericInput(inputId=paste0("toptrack", x),
+                                   label="Top:",
+                                   value=0,
+                                   max=13, min=0, step=1)),
+               column(width=3,
+                      numericInput(inputId=paste0("bottomtrack", x),
+                                   label="Bottom:",
+                                   value=0,
+                                   max=13, min=0, step=1)),
+               column(width=3,
+                      numericInput(inputId=paste0("destroyed", x),
+                                   label="Destroyed:",
+                                   value=0,
+                                   max=13, min=0, step=1)),
+             )
       )
     })
     interaction[["id"]] <- "players"
@@ -336,7 +355,10 @@ server = function(input, output, session) {
       spirit = character(),
       aspect = character(),
       board = character(),
-      power_prog = character()
+      power_prog = character(),
+      top_track = numeric(),
+      bottom_track = numeric(),
+      destroyed = numeric()
     )
     for (i in 1:6){
       if(i <= input$player_n) {
@@ -347,11 +369,14 @@ server = function(input, output, session) {
           spirit = input[[paste0("spirit", i)]],
           aspect = ifelse(
             is.null(input[[paste0("aspect", i)]]),
-            NA,
+            "",
             input[[paste0("aspect", i)]]
           ),
           board = input[[paste0("board", i)]],
-          power_prog = input[[paste0("powerprog", i)]]
+          power_prog = input[[paste0("powerprog", i)]],
+          top_track = input[[paste0("toptrack", i)]],
+          bottom_track = input[[paste0("bottomtrack",i)]],
+          destroyed = input[[paste0("destroyed",i)]]
         )
       } else {
         player_i <- data.table(
@@ -361,12 +386,17 @@ server = function(input, output, session) {
           spirit = "",
           aspect = "",
           board = "",
-          power_prog = FALSE
+          power_prog = FALSE,
+          top_track = NA,
+          bottom_track = NA,
+          destroyed = NA
         )
       }
       players <- rbind(players, player_i)
       players_wide <- dcast(players, formula = id ~ n, 
-                            value.var=list("name", "spirit", "aspect", "board", "power_prog"))
+                            value.var=list("name", "spirit", "aspect", "board", 
+                                           "power_prog", "top_track", 
+                                           "bottom_track", "destroyed"))
       
     }
     return(players_wide)
@@ -469,6 +499,8 @@ server = function(input, output, session) {
       dplyr::relocate(boards, .after=spirits) %>%
       select(-c(name_1:name_6, spirit_1:spirit_6, aspect_1:aspect_6, 
                 power_prog_1:power_prog_6, board_1:board_6,
+                top_track_1:top_track_6, bottom_track_1:bottom_track_6,
+                destroyed_1:destroyed_6,
                 branch_claw, jagged_earth, feather_flame))
       # select(date, spirits, adversary, level, scenario, difficulty, victory, score)
     if (!is.null(input$columns)) {
