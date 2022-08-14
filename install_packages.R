@@ -1,0 +1,8 @@
+install.packages("shiny")
+install.packages("shinyvalidate")
+install.packages("dplyr")
+install.packages("tidyr")
+install.packages("DT")
+install.packages("data.table")
+install.packages("bslib")
+install.packages("plotly")
