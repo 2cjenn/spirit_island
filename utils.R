@@ -6,7 +6,8 @@ players_long <- function(data){
   
   player_data <- data %>%
     arrange(desc(date)) %>%
-    mutate(game = seq.int(nrow(.))) %>%
+    mutate(game = seq.int(nrow(.)),
+           across(powerprog_1:destroyed_6, ~as.character(.x))) %>%
     pivot_longer(
       cols = c(
         paste0("name_", 1:6),
@@ -20,9 +21,11 @@ players_long <- function(data){
       ),
       names_to = c("type", "num"),
       names_sep = "_",
-      values_drop_na = FALSE
+      values_to = "value"
     ) %>%
     pivot_wider(names_from = type, values_from = value) %>%
+    mutate(powerprog = as.logical(powerprog),
+           across(c(toptrack, bottomtrack, destroyed), ~as.numeric(.x))) %>%
     filter(!is.na(name) & name != "")
   
   return(player_data)
