@@ -111,6 +111,11 @@ abbreviations <- list("River Surges in Sunlight" = "RSS",
                       "Finder of Paths Unseen" = "FPU"
 )
 
+unbreviations <- names(abbreviations)
+names <- unlist(abbreviations)
+names(names) <- NULL
+names(unbreviations) <- names
+
 # Colours ----------------------------------------------------------------------
 
 # https://www.datanovia.com/en/blog/awesome-list-of-657-r-color-names/

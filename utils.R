@@ -126,7 +126,8 @@ arrange_scoretable <- function(data) {
               powerprog_1:powerprog_6, board_1:board_6,
               toptrack_1:toptrack_6, bottomtrack_1:bottomtrack_6,
               destroyed_1:destroyed_6,
-              branch_claw, jagged_earth, feather_flame))
+              branch_claw, jagged_earth, feather_flame)) %>%
+    arrange(desc(id))
 }
 
 
@@ -135,7 +136,7 @@ arrange_scoretable <- function(data) {
 players_long <- function(data){
   
   player_data <- data %>%
-    arrange(desc(date)) %>%
+    arrange(desc(id)) %>%
     mutate(game = seq.int(nrow(.)),
            across(powerprog_1:destroyed_6, ~as.character(.x))) %>%
     pivot_longer(
