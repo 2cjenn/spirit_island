@@ -108,35 +108,54 @@ spirit_friends <- function(player_data) {
   data <- player_data %>%
     select(game, spirit, n_players) %>%
     filter(spirit != "") %>%
-    mutate(spirit = abbreviations[spirit])
+    mutate(spirit_short = abbreviations[spirit])
   
   spirit_rows <- list()
+  text_rows <- list()
   
-  for (s in unique(data$spirit)) {
-    games <- data$game[data$spirit == s]
+  for (s in unique(data$spirit_short)) {
+    games <- data$game[data$spirit_short == s]
     
     friends <- data %>% 
-      filter(game %in% games & spirit != s & spirit != "") %>%
+      filter(game %in% games & spirit_short != s & spirit_short != "") %>%
       mutate(weight = 1/factorial(n_players)) %>%
-      group_by(spirit) %>%
-      summarize(weight.sum = sum(weight)) %>%
-      ungroup
+      group_by(spirit_short, spirit) %>%
+      summarize(weight.sum = sum(weight), .groups="drop_last") %>%
+      ungroup %>%
+      mutate(label = paste0("x: ", spirit, 
+                            "\ny: ", unbreviations[[s]], 
+                            "\nz: ", round(weight.sum, 2)))
     
-    row <- as.list(friends$weight.sum)
-    names(row) <- friends$spirit
-    spirit_rows[[s]] <- as.data.frame(row)
+    weight_row <- as.list(friends$weight.sum)
+    names(weight_row) <- friends$spirit_short
+    spirit_rows[[s]] <- as.data.frame(weight_row)
+    
+    text_row <- as.list(friends$label)
+    names(text_row) <- friends$spirit_short
+    text_rows[[s]] <- as.data.frame(text_row)
   }
+  
   heatmatrix <- bind_rows(spirit_rows, .id="id") %>%
     arrange(id)
   colorder <- heatmatrix$id
   rownames(heatmatrix) <- heatmatrix$id
+  
   heatmatrix <- as.matrix(heatmatrix[,colorder])
   
+  textmatrix <- bind_rows(text_rows, .id="id") %>%
+    arrange(id)
+  colorder <- textmatrix$id
+  rownames(textmatrix) <- textmatrix$id
+  
+  textmatrix <- as.matrix(textmatrix[,colorder])
+  
+
   
   plot_ly(
-    x = unbreviations[rownames(heatmatrix)], 
-    y = unbreviations[colnames(heatmatrix)],
-    z = heatmatrix, type = "heatmap"
+    x = rownames(heatmatrix), 
+    y = colnames(heatmatrix),
+    z = heatmatrix, type = "heatmap",
+    hoverinfo='text', text=textmatrix
   ) %>%
     layout(title = "How often are spirits played together?")
   

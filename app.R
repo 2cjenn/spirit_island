@@ -169,7 +169,13 @@ ui = fluidPage(
              plotlyOutput("games_since_spirit", inline=TRUE),
              plotlyOutput("games_since_adversary", inline=TRUE),
              # Global plots
-             plotlyOutput("spirit_friends", inline=TRUE)
+             # https://community.rstudio.com/t/plotly-fixed-ratio/94447/5
+             div(style="width:100%;height:0;padding-top:100%;position:relative;",
+                 div(style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;",
+                     plotlyOutput("spirit_friends", inline=TRUE, height="60vmin", width="70vmin")
+                     )
+                 )
+             
       
     ),
     tabPanel("Backup",
