@@ -345,91 +345,6 @@ server = function(input, output, session) {
       })
     )
   })
-
-  
-  gen_players <- function(input, unique_id) {
-    players <- data.table(
-      id = as.POSIXct(character()),
-      n = numeric(),
-      name = character(),
-      spirit = character(),
-      aspect = character(),
-      board = character(),
-      powerprog = character(),
-      toptrack = numeric(),
-      bottomtrack = numeric(),
-      destroyed = numeric()
-    )
-    for (i in 1:6){
-      if(i <= input$player_n) {
-        player_i <- data.table(
-          id = unique_id,
-          n = i,
-          name = input[[paste0("name", i)]],
-          spirit = input[[paste0("spirit", i)]],
-          aspect = ifelse(
-            is.null(input[[paste0("aspect", i)]]),
-            "",
-            input[[paste0("aspect", i)]]
-          ),
-          board = input[[paste0("board", i)]],
-          powerprog = input[[paste0("powerprog", i)]],
-          toptrack = input[[paste0("toptrack", i)]],
-          bottomtrack = input[[paste0("bottomtrack",i)]],
-          destroyed = input[[paste0("destroyed",i)]]
-        )
-      } else {
-        player_i <- data.table(
-          id = unique_id,
-          n = i,
-          name = "",
-          spirit = "",
-          aspect = "",
-          board = "",
-          powerprog = FALSE,
-          toptrack = NA,
-          bottomtrack = NA,
-          destroyed = NA
-        )
-      }
-      players <- rbind(players, player_i)
-      players_wide <- dcast(players, formula = id ~ n, 
-                            value.var=list("name", "spirit", "aspect", "board", 
-                                           "powerprog", "toptrack", 
-                                           "bottomtrack", "destroyed"))
-      
-    }
-    return(players_wide)
-  }
-  
-  gen_datarow <- function(input, victory, score, difficulty){
-    unique_id <- Sys.time()
-    
-    players <- gen_players(input, unique_id)
-    
-    newrow = data.table(id = unique_id,
-                        date = input$date,
-                        n_players = input$player_n,
-                        adversary = input$adversary,
-                        level = input$adv_level,
-                        scenario = input$scenario,
-                        difficulty = difficulty,
-                        victory = victory,
-                        invader_cards = input$invader_cards,
-                        dahan = input$dahan,
-                        blight = input$blight,
-                        score = score,
-                        #invisible
-                        branch_claw = input$branch_claw,
-                        jagged_earth = input$jagged_earth,
-                        feather_flame = input$feather_flame,
-                        blighted_island = input$blighted_island,
-                        fear_level = input$fear_level
-    )
-    
-    row = merge.data.table(players, newrow, by.x=c("id"), by.y=c("id"))
-    return(row)
-  }
   
   # When the Submit button is clicked, save the form data
   observeEvent(input$victory, {
@@ -472,37 +387,8 @@ server = function(input, output, session) {
   output$scores <- DT::renderDataTable({
     data <- df()
     
-    data <- data %>%
-      mutate(across(spirit_1:spirit_6, ~ifelse(.x=="", .x, abbreviations[.x])),
-             branch_claw = ifelse(branch_claw == TRUE, "BC", NA),
-             jagged_earth = ifelse(jagged_earth == TRUE, "JE", NA),
-             feather_flame = ifelse(feather_flame == TRUE, "FF", NA))
-      
+    data <- arrange_scoretable(data)
     
-    for(i in 1:6) {
-      powerprog_col <- paste0("powerprog_", i)
-      spirit_col <- paste0("spirit_", i)
-      powerprog <- data[[powerprog_col]] == TRUE
-      if(any(powerprog)) {
-        data[powerprog,][[spirit_col]] <- paste0(data[powerprog,][[spirit_col]], "+")
-      }
-    }
-    
-    data$spirits <- apply( data[, paste0("spirit_", c(1:6)) ], 1, paste_noNA, sep=", ")
-    data$names <- apply( data[, paste0("name_", c(1:6)) ], 1, paste_noNA, sep=", ")
-    data$boards <- apply( data[, paste0("board_", c(1:6)) ], 1, paste_noNA, sep=", ")
-    data$expansions <- apply( data[, c("branch_claw", "jagged_earth", "feather_flame")],
-                              1, paste_noNA, sep=", ")
-    data <- data %>% 
-      dplyr::relocate(names, .after=date) %>%
-      dplyr::relocate(spirits, .after=names) %>%
-      dplyr::relocate(boards, .after=spirits) %>%
-      select(-c(name_1:name_6, spirit_1:spirit_6, aspect_1:aspect_6, 
-                powerprog_1:powerprog_6, board_1:board_6,
-                toptrack_1:toptrack_6, bottomtrack_1:bottomtrack_6,
-                destroyed_1:destroyed_6,
-                branch_claw, jagged_earth, feather_flame))
-      # select(date, spirits, adversary, level, scenario, difficulty, victory, score)
     if (!is.null(input$columns)) {
       columns = input$columns
     }
@@ -554,7 +440,7 @@ server = function(input, output, session) {
   
   # Download
   output$downloadData <- downloadHandler(
-    filename = paste0("spiritisland_data",format(Sys.Date(), "%Y%m%d"), ".csv"),
+    filename = paste0("spiritisland_data_",format(Sys.Date(), "%Y%m%d"), ".csv"),
     content = function(file) {
       write.csv(mydata, file, row.names = FALSE)
     }
