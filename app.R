@@ -355,9 +355,9 @@ server = function(input, output, session) {
       spirit = character(),
       aspect = character(),
       board = character(),
-      power_prog = character(),
-      top_track = numeric(),
-      bottom_track = numeric(),
+      powerprog = character(),
+      toptrack = numeric(),
+      bottomtrack = numeric(),
       destroyed = numeric()
     )
     for (i in 1:6){
@@ -373,9 +373,9 @@ server = function(input, output, session) {
             input[[paste0("aspect", i)]]
           ),
           board = input[[paste0("board", i)]],
-          power_prog = input[[paste0("powerprog", i)]],
-          top_track = input[[paste0("toptrack", i)]],
-          bottom_track = input[[paste0("bottomtrack",i)]],
+          powerprog = input[[paste0("powerprog", i)]],
+          toptrack = input[[paste0("toptrack", i)]],
+          bottomtrack = input[[paste0("bottomtrack",i)]],
           destroyed = input[[paste0("destroyed",i)]]
         )
       } else {
@@ -386,17 +386,17 @@ server = function(input, output, session) {
           spirit = "",
           aspect = "",
           board = "",
-          power_prog = FALSE,
-          top_track = NA,
-          bottom_track = NA,
+          powerprog = FALSE,
+          toptrack = NA,
+          bottomtrack = NA,
           destroyed = NA
         )
       }
       players <- rbind(players, player_i)
       players_wide <- dcast(players, formula = id ~ n, 
                             value.var=list("name", "spirit", "aspect", "board", 
-                                           "power_prog", "top_track", 
-                                           "bottom_track", "destroyed"))
+                                           "powerprog", "toptrack", 
+                                           "bottomtrack", "destroyed"))
       
     }
     return(players_wide)
@@ -480,11 +480,11 @@ server = function(input, output, session) {
       
     
     for(i in 1:6) {
-      power_prog_col <- paste0("power_prog_", i)
+      powerprog_col <- paste0("powerprog_", i)
       spirit_col <- paste0("spirit_", i)
-      power_prog <- data[[power_prog_col]] == TRUE
-      if(any(power_prog)) {
-        data[power_prog,][[spirit_col]] <- paste0(data[power_prog,][[spirit_col]], "+")
+      powerprog <- data[[powerprog_col]] == TRUE
+      if(any(powerprog)) {
+        data[powerprog,][[spirit_col]] <- paste0(data[powerprog,][[spirit_col]], "+")
       }
     }
     
@@ -498,8 +498,8 @@ server = function(input, output, session) {
       dplyr::relocate(spirits, .after=names) %>%
       dplyr::relocate(boards, .after=spirits) %>%
       select(-c(name_1:name_6, spirit_1:spirit_6, aspect_1:aspect_6, 
-                power_prog_1:power_prog_6, board_1:board_6,
-                top_track_1:top_track_6, bottom_track_1:bottom_track_6,
+                powerprog_1:powerprog_6, board_1:board_6,
+                toptrack_1:toptrack_6, bottomtrack_1:bottomtrack_6,
                 destroyed_1:destroyed_6,
                 branch_claw, jagged_earth, feather_flame))
       # select(date, spirits, adversary, level, scenario, difficulty, victory, score)
@@ -554,7 +554,7 @@ server = function(input, output, session) {
   
   # Download
   output$downloadData <- downloadHandler(
-    filename = "spiritisland_data.csv",
+    filename = paste0("spiritisland_data",format(Sys.Date(), "%Y%m%d"), ".csv"),
     content = function(file) {
       write.csv(mydata, file, row.names = FALSE)
     }

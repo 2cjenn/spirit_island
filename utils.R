@@ -12,11 +12,15 @@ players_long <- function(data){
         paste0("name_", 1:6),
         paste0("spirit_", 1:6),
         paste0("aspect_", 1:6),
-        paste0("board_", 1:6)
+        paste0("board_", 1:6),
+        paste0("powerprog_", 1:6),
+        paste0("toptrack_", 1:6),
+        paste0("bottomtrack_", 1:6),
+        paste0("destroyed_", 1:6)
       ),
       names_to = c("type", "num"),
       names_sep = "_",
-      values_drop_na = TRUE
+      values_drop_na = FALSE
     ) %>%
     pivot_wider(names_from = type, values_from = value) %>%
     filter(!is.na(name) & name != "")

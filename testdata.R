@@ -37,3 +37,4 @@ players_wide <- dcast(players, formula = id ~ n,
                                      "destroyed"))
 
 mydata <- merge(players_wide, game, by.x="id", by.y="id")
+
