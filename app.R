@@ -165,7 +165,8 @@ ui = fluidPage(
              
              # Per-player plots
              plotlyOutput("pop_spirit", inline=TRUE),
-             plotlyOutput("diff_vs_score", inline=TRUE),
+             plotlyOutput("diff_vs_score", inline=TRUE), 
+             plotlyOutput("time_score", inline=TRUE),
              plotlyOutput("games_since_spirit", inline=TRUE),
              plotlyOutput("games_since_adversary", inline=TRUE),
              # Global plots
@@ -437,6 +438,7 @@ server = function(input, output, session) {
   # Per-player plots
   output$pop_spirit <- renderPlotly(popular_spirit(df_player())) 
   output$diff_vs_score <- renderPlotly(difficulty_vs_score(df_player()))
+  output$time_score <- renderPlotly(time_score(df_player()))
   output$games_since_spirit <- renderPlotly(games_since_spirit(df_player()))
   output$games_since_adversary <- renderPlotly(games_since_adversary(df_player()))
   

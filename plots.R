@@ -37,15 +37,16 @@ popular_spirit <- function(player_data) {
 # Score
 
 difficulty_vs_score <- function(player_data) {
-  score <- player_data %>%
+  scores <- player_data %>%
     mutate(score = score - ifelse(victory, 5*difficulty, 2*difficulty) - ifelse(victory, 10, 0)) %>%
     mutate(score = ifelse(victory, score, -score)) %>%
     select(difficulty, adversary, level, scenario, score)
   
-  plot_ly(data = score, y = ~score, x = ~difficulty, 
+  plot_ly(data = scores, y = ~score, x = ~difficulty, 
           type = "scatter", mode = "markers",
           color = ~adversary, colors = adversary_colours,
           symbol = ~scenario, symbols = scenario_symbols,
+          marker = list(size = 10, opacity = 0.5),
           hoverinfo = 'text', text = ~paste0(adversary, " L", level, ", ", scenario),
           showlegend=FALSE) %>%
     layout(title = "Score by difficulty",
@@ -53,6 +54,28 @@ difficulty_vs_score <- function(player_data) {
                                        "Defeat                              Victory")),
            xaxis = list(title = "Difficulty"))
 }
+
+
+#-------------------------------------------------------------------------------
+
+# Score over time
+
+time_score <- function(player_data) {
+  scores <- player_data %>%
+    mutate(game = max(game) + 1 - game) %>%
+    select(date, game, score, difficulty, adversary, victory)
+  
+  plot_ly(scores, x = ~game, y = ~score, 
+          color = ~adversary, colors = adversary_colours,
+          text = ~paste0("Difficulty: ", difficulty),
+          type = 'scatter', mode = 'markers',
+          symbol = ~victory, symbols = c("x", "circle"),
+          marker = list(size = ~difficulty+10, opacity = 0.5),
+          showlegend = FALSE
+  ) %>%
+    layout(title = "Score over time, by difficulty")
+}
+
 
 
 #-------------------------------------------------------------------------------
@@ -149,7 +172,6 @@ spirit_friends <- function(player_data) {
   
   textmatrix <- as.matrix(textmatrix[,colorder])
   
-
   
   plot_ly(
     x = rownames(heatmatrix), 
