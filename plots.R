@@ -54,7 +54,7 @@ difficulty_vs_score <- function(player_data) {
           type = "scatter", mode = "markers",
           color = ~adversary, colors = adversary_colours,
           symbol = ~scenario, symbols = scenario_symbols,
-          marker = list(size = 10),
+          marker = list(size = 10, opacity=0.8),
           hoverinfo = 'text', text = ~paste0(adversary, " L", level, ", ", scenario),
           showlegend=FALSE) %>%
     layout(title = "Score by difficulty",
@@ -77,11 +77,12 @@ time_score <- function(player_data) {
     ungroup
   
   plot_ly(scores, x = ~game, y = ~score, 
-          color = ~adversary, colors = adversary_colours,
+          color = ~adversary, colors = adversary_colours, 
+          size = ~difficulty, sizes=c(10,100), fill=~'',
           text = ~paste0("Difficulty: ", difficulty),
           type = 'scatter', mode = 'markers',
           symbol = ~victory, symbols = c("x", "circle"),
-          marker = list(size = ~difficulty+10, opacity = 0.5),
+          marker = list(opacity = 0.8),
           showlegend = FALSE
   ) %>%
     layout(title = "Score over time, by difficulty")
