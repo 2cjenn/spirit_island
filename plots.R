@@ -12,6 +12,11 @@ library(forcats)
 # 
 # mydata <- loadcsv("data.csv")
 
+fixed_jitter <- function (x, factor = 1, amount = NULL) {
+  set.seed(42)
+  jitter(x, factor, amount)
+}
+
 #-------------------------------------------------------------------------------
 
 # Most popular spirit
@@ -40,13 +45,16 @@ difficulty_vs_score <- function(player_data) {
   scores <- player_data %>%
     mutate(score = score - ifelse(victory, 5*difficulty, 2*difficulty) - ifelse(victory, 10, 0)) %>%
     mutate(score = ifelse(victory, score, -score)) %>%
-    select(difficulty, adversary, level, scenario, score)
+    select(id, difficulty, adversary, level, scenario, score) %>%
+    group_by(id) %>%
+    filter(row_number()==1) %>%
+    ungroup
   
-  plot_ly(data = scores, y = ~score, x = ~difficulty, 
+  plot_ly(data = scores, y = ~score, x = ~jitter(difficulty), 
           type = "scatter", mode = "markers",
           color = ~adversary, colors = adversary_colours,
           symbol = ~scenario, symbols = scenario_symbols,
-          marker = list(size = 10, opacity = 0.5),
+          marker = list(size = 10),
           hoverinfo = 'text', text = ~paste0(adversary, " L", level, ", ", scenario),
           showlegend=FALSE) %>%
     layout(title = "Score by difficulty",
@@ -63,7 +71,10 @@ difficulty_vs_score <- function(player_data) {
 time_score <- function(player_data) {
   scores <- player_data %>%
     mutate(game = max(game) + 1 - game) %>%
-    select(date, game, score, difficulty, adversary, victory)
+    select(id, date, game, score, difficulty, adversary, victory) %>%
+    group_by(id) %>%
+    filter(row_number()==1) %>%
+    ungroup
   
   plot_ly(scores, x = ~game, y = ~score, 
           color = ~adversary, colors = adversary_colours,
