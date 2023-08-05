@@ -82,6 +82,45 @@ ff_adversaries <- list("Scotland"=c(0, 3, 4, 6, 7, 8, 10))
 ff_scenarios <- list("A Diversity of Spirits"=0,
                      "Varied Terrains"=2)
 
+# Horizons
+ho_spirits <- list("Devouring Teeth Lurk Underfoot",
+                   "Eyes Watch From the Trees",
+                   "Fathomless Mud of the Swamp",
+                   "Rising Heat of Stone and Sand",
+                   "Sun-Bright Whirlwind")
+
+# Nature Incarnate
+ni_spirits <- list("Ember-Eyed Behemoth",
+                   "Towering Roots of the Jungle",
+                   "Hearth-Vigil",
+                   "Breath of Darkness Down Your Spine",
+                   "Relentless Gaze of the Sun",
+                   "Wandering Voice Keens Delirium",
+                   "Wounded Waters Bleeding",
+                   "Dances Up Earthquakes")
+
+ni_aspects <- list("Bringer of Dreams and Nightmares"=c("Violence", "Enticing"),
+                   "Heart of the Wildfire"=c("Transforming"),
+                   "Lightning's Swift Strike"=c("Sparking"),
+                   "Lure of the Deep Wilderness"=c("Lair"),
+                   "Ocean's Hungry Grasp"=c("Deeps"),
+                   "Serpent Slumbering Beneath the Island"=c("Locus"),
+                   "Shadows Flicker Like Flame"=c("Dark Fire"),
+                   "Shifting Memory of Ages"=c("Intensify", "Mentor"),
+                   "Vital Strength of the Earth"=c("Nourishing"),
+                   "Shroud of Silent Mist"=c("Stranded"),
+                   "A Spread of Rampant Green"=c("Tangles", "Regrowth"),
+                   "Thunderspeaker"=c("Warrior", "Tactician"),
+                   "River Surges in Sunlight"=c("Haven"),
+                   "Keeper of the Forbidden Wilds"=c("Spreading Hostility"),
+                   "Sharp Fangs Behind the Leaves"=c("Encircle", "Unconstrained"))
+
+ni_adversaries <- list("Habsburg Mining Expedition"=c(0, 3, 4, 5, 7, 9, 10))
+
+ni_scenarios <- list("Surges of Colonization"=2,
+                     "Larger Surges of Colonization"=7,
+                     "Destiny Unfolds"=-1)
+
 
 # Shorthands -------------------------------------------------------------------
 
@@ -108,7 +147,20 @@ abbreviations <- list("River Surges in Sunlight" = "RSS",
                       "Heart of the Wildfire" = "HWF",
                       "Serpent Slumbering Beneath the Island" = "SSB",
                       "Downpour Drenches the World" = "DDW",
-                      "Finder of Paths Unseen" = "FPU"
+                      "Finder of Paths Unseen" = "FPU",
+                      "Devouring Teeth Lurk Underfoot" = "DTL",
+                      "Eyes Watch From the Trees" = "EWT",
+                      "Fathomless Mud of the Swamp" = "FMS",
+                      "Rising Heat of Stone and Sand" = "RHS",
+                      "Sun-Bright Whirlwind" = "SBW",
+                      "Ember-Eyed Behemoth"="EEB",
+                      "Towering Roots of the Jungle"="TRJ",
+                      "Hearth-Vigil"="HVG",
+                      "Breath of Darkness Down Your Spine"="BDS",
+                      "Relentless Gaze of the Sun"="RGS",
+                      "Wandering Voice Keens Delirium"="WVK",
+                      "Wounded Waters Bleeding"="WWB",
+                      "Dances Up Earthquakes"="DUP"
 )
 
 unbreviations <- names(abbreviations)
@@ -119,6 +171,7 @@ names(unbreviations) <- names
 # Colours ----------------------------------------------------------------------
 
 # https://www.datanovia.com/en/blog/awesome-list-of-657-r-color-names/
+# https://bookdown.org/hneth/ds4psy/D-3-apx-colors-basics.html
 spirit_colours <- c(
   "River Surges in Sunlight" = "darkturquoise",
   "Vital Strength of the Earth" = "khaki4",
@@ -143,7 +196,20 @@ spirit_colours <- c(
   "Heart of the Wildfire" = "darkorange1",
   "Serpent Slumbering Beneath the Island" = "darkolivegreen4",
   "Downpour Drenches the World" = "darkorchid1",
-  "Finder of Paths Unseen" = "lightsteelblue3"
+  "Finder of Paths Unseen" = "lightsteelblue3",
+  "Devouring Teeth Lurk Underfoot" = "tomato4",
+  "Eyes Watch From the Trees" = "seagreen",
+  "Fathomless Mud of the Swamp" = "salmon4",
+  "Rising Heat of Stone and Sand" = "red4",
+  "Sun-Bright Whirlwind" = "darkolivegreen2",
+  "Ember-Eyed Behemoth"="darkgoldenrod",
+  "Towering Roots of the Jungle"="sienna",
+  "Hearth-Vigil"="magenta2",
+  "Breath of Darkness Down Your Spine"="azure4",
+  "Relentless Gaze of the Sun"="lemonchiffon",
+  "Wandering Voice Keens Delirium"="tan2",
+  "Wounded Waters Bleeding"="tomato1",
+  "Dances Up Earthquakes"="palevioletred"
 )
 
 # https://community.plotly.com/t/plotly-colours-list/11730/3
@@ -155,7 +221,8 @@ adversary_colours <- c(
   "Scotland" = "blue",
   "France" = "yellow",
   "Hapsburg" = "purple",
-  "Russia" = "black"
+  "Russia" = "black",
+  "Habsburg Mining Expedition" = "khaki2"
 )
 
 # https://plotly-r.com/working-with-symbols.html
@@ -173,5 +240,8 @@ scenario_symbols <- c(
   "Despicable Theft" = "star-square-dot",
   "The Great River" = "diamond-wide-dot",
   "A Diversity of Spirits" = "triangle-right-dot",
-  "Varied Terrain" = "hexagon-dot"
+  "Varied Terrain" = "hexagon-dot",
+  "Surges of Colonization" = "diamond-x",
+  "Larger Surges of Colonization" = "diamond-tall",
+  "Destiny Unfolds" = "diamond-tall-dot"
 )

@@ -43,7 +43,9 @@ loadData <- function() {
 loadcsv <- function(filepath) {
   mydata <- read.csv(filepath, na.strings = "NA")
   mydata$date <- as.Date(mydata$date, tryFormats = c("%Y-%m-%d", "%d/%m/%Y"))
-  mydata$id <- as.POSIXct(mydata$id, tryFormats = c("%Y-%m-%d", "%d/%m/%Y"))
+  mydata$id <- as.POSIXct(mydata$id, tryFormats = c("%Y-%m-%d", "%d/%m/%Y", 
+                                                    "%Y-%m-%d %H:%M:%S", 
+                                                    "%d/%m/%Y %H:%M:%S"))
   return(mydata)
 }
 
@@ -79,10 +81,18 @@ ui = fluidPage(
                column(width=3,
                       checkboxInput(inputId="jagged_earth",
                                     label="Jagged Earth?",
-                                    value=FALSE)),
+                                    value=TRUE)),
                column(width=3,
                       checkboxInput(inputId="feather_flame",
                                     label="Feather and Flame?",
+                                    value=TRUE)),
+               column(width=3,
+                      checkboxInput(inputId="horizons",
+                                    label="Horizons of Spirit Island?",
+                                    value=FALSE)),
+               column(width=3,
+                      checkboxInput(inputId="nature_incarnate",
+                                    label="Nature Incarnate?",
                                     value=FALSE))
              ),
              fluidRow(
@@ -222,6 +232,15 @@ server = function(input, output, session) {
       spirits[["Feather and Flame"]] <- ff_spirits
       aspect_list <- Map(c, aspect_list, ff_aspects)
     }
+    # Horizons expansion
+    if(input$horizons) {
+      spirits[["Horizons of Spirit Island"]] <- ho_spirits
+    }
+    # Nature Incarnate expansion
+    if(input$nature_incarnate) {
+      spirits[["Nature Incarnate"]] <- ni_spirits
+      aspect_list <- Map(c, aspect_list, ni_aspects)
+    }
     
     interaction <- lapply(seq_len(input$player_n), function(x) {
       column(width=floor(12/input$player_n),
@@ -240,7 +259,7 @@ server = function(input, output, session) {
                          selectize=FALSE),
              # Aspects
              renderUI({
-               if((input$jagged_earth | input$feather_flame) & 
+               if((input$jagged_earth | input$feather_flame | input$nature_incarnate) & 
                   input[[paste0("spirit", x)]] %in% names(aspect_list)){
                  selectInput(inputId=paste0("aspect", x),
                              label="Aspect:",
@@ -309,6 +328,10 @@ server = function(input, output, session) {
     if(input$feather_flame) {
       adversaries <- c(adversaries, ff_adversaries)
       scenarios <- c(scenarios, ff_scenarios)
+    }
+    if(input$nature_incarnate) {
+      adversaries <- c(adversaries, ni_adversaries)
+      scenarios <- c(scenarios, ni_scenarios)
     }
     
     fluidRow(
