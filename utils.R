@@ -162,3 +162,19 @@ players_long <- function(data){
   return(player_data)
   
 }
+
+
+# Combine lists of aspects
+map_aspects <- function(aspect_list, aspects) {
+  for (aspect in names(aspects)) {
+    if (aspect %in% names(aspect_list)) {
+      aspect_list[[aspect]] <- c(aspect_list[[aspect]], aspects[[aspect]])
+    }
+    else {
+      aspect_list[[aspect]] <- c("None", aspects[[aspect]])
+    }
+  }
+  return(aspect_list)
+}
+
+
