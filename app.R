@@ -235,6 +235,8 @@ server = function(input, output, session) {
     # Horizons expansion
     if(input$horizons) {
       spirits[["Horizons of Spirit Island"]] <- ho_spirits
+      powerprog_list <- c(powerprog_list, ho_powerprog)
+      print(powerprog_list)
     }
     # Nature Incarnate expansion
     if(input$nature_incarnate) {
@@ -275,7 +277,7 @@ server = function(input, output, session) {
                          selectize=FALSE),
              # Power progressions?
              renderUI({
-               if(input[[paste0("spirit", x)]] %in% names(aspect_list)){
+               if(input[[paste0("spirit", x)]] %in% powerprog_list){
                  checkboxInput(inputId=paste0("powerprog",x),
                                label="Power Progression?",
                                value=FALSE)
