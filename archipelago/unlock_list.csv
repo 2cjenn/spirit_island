@@ -1,0 +1,128 @@
+Scenario,Artifact,Flag,Aspect,Spirit,Condition
+4,,,LSS: Wind,,First win
+4,34,,,,Second win
+12,23,,,,First win
+12,39,,,,First win
+12,23,,,,Second win
+14,,1,,,
+14,,2,,,
+14,19,,,,
+19,,,LSS: Pandemonium,,First win
+19,33,,,,Second win
+23,,11,,,
+23,,12,,,
+23,51,,,,
+25,8,,,,First win
+25,50,,,,First win
+25,50,,,,Second win
+27,,,VSE: Resilience,,First win
+27,13,,,,Second win
+31,,,LSS Immense,,First win
+31,60,,,,Second win
+33,,,,Heart of the Wildfire,
+34,10,,,,First win
+34,18,,,,First win
+34,18,,,,Second win
+36,,,SFF: Reach,,First win
+36,53,,,,Second win
+38,29,,,,First win
+38,42,,,,First win
+38,42,,,,Second win
+39,47,,,,Win
+42,6,,,,First win
+42,58,,,,First win
+42,6,,,,Second win
+44,,,RSS: Sunshine,,First win
+44,21,,,,Second win
+49,,,RSS: Travel,,First win
+49,4,,,,Second win
+53,9,,,,First win
+53,25,,,,First win
+53,25,,,,Second win
+55,,,,Serpent Slumbering Beneath the Island,Win
+58,3,,,,First win
+58,57,,,,First win
+58,57,,,,Second win
+59,,,,,Annex 5
+66,,,SFF: Foreboding,,First win
+66,14,,,,Second win
+69,11,,,,First win
+69,54,,,,First win
+69,11,,,,Second win
+74,,,,,Annex 5
+77,24,,,,Win
+79,,13,,,
+79,,14,,,
+79,28,,,,
+80,,9,,,
+80,,10,,,
+80,,17,,,
+82,44,,,,
+84,,,VSE: Might,,First win
+84,38,,,,Second win
+86,56,,,,First win
+86,12,,,,First win
+86,56,,,,Second win
+89,,5,,,Annex 4
+89,,6,,,Annex 4
+89,7,,,,Annex 4
+91,41,,,,First win
+91,20,,,,First win
+91,41,,,,Second win
+92,,,SFF: Amorphous,,First win
+92,32,,,,Second win
+94,,7,,,
+94,,8,,,
+94,27,,,,
+95,,,SFF: Madness,,First win
+95,31,,,,Second win
+96,,3,,,
+96,,4,,,
+96,2,,,,
+97,5,,,,First win
+97,49,,,,First win
+97,15,,,,First win
+97,5,,,,Second win
+97,15,,,,Second win
+98,1,,,,First win
+98,37,,,,First win
+98,37,,,,Second win
+101,62,,,,First win
+101,69,,,,First win
+101,69,,,,Second win
+102,26,,,,First win
+102,65,,,,First win
+102,26,,,,Second win
+103,45,,,,First win
+103,59,,,,First win
+103,70,,,,First win
+103,45,,,,Second win
+103,59,,,,Second win
+104,16,,,,First win
+104,61,,,,First win
+104,61,,,,Second win
+105,35,,,,First win
+105,67,,,,First win
+105,35,,,,Second win
+106,30,,,,First win
+106,63,,,,First win
+106,30,,,,Second win
+107,43,,,,First win
+107,48,,,,First win
+107,54,,,,Second win
+108,52,,,,First win
+108,66,,,,First win
+108,66,,,,Second win
+109,40,,,,First win
+109,55,,,,First win
+109,40,,,,Second win
+110,64,,,,First win
+110,68,,,,First win
+110,64,,,,Second win
+111,15,,,,First win
+111,36,,,,First win
+111,36,,,,Second win
+112,22,,,,First win
+112,46,,,,First win
+112,22,,,,Second win
+112,70,17,0,0,
