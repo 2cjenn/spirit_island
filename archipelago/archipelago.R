@@ -59,6 +59,7 @@ get_artifacts <- function(arc_log) {
   unlocked <- arc_log$artifact_unlocked
   used <- arc_log$artifact
   available <- unlocked[!is.na(unlocked) & !(unlocked %in% used)]
+  available <- unlist(strsplit(available, split=", "))
   return(sort(available))
 }
 
@@ -66,6 +67,7 @@ get_flags <- function(arc_log) {
   unlocked <- arc_log$flag_unlocked
   used <- arc_log$flag[arc_log$victory=="y"]
   available <- unlocked[!is.na(unlocked) & !(unlocked %in% used)]
+  available <- unlist(strsplit(available, split=", "))
   return(sort(available))
 }
 

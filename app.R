@@ -55,7 +55,7 @@ mydata <- loadData()
 # mydata <- loadcsv("data.csv")
 
 load_scenarios <- function(filepath) {
-  scen_list <- read.csv(filepath, na.strings = "NA")
+  scen_list <- read.csv(filepath, na.strings = c("", "NA"))
 }
 scen_list <- load_scenarios("archipelago/scenario_list.csv")
 
