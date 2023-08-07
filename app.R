@@ -22,6 +22,8 @@ library(plotly)
 
 source("spirit_info.R")
 
+source("archipelago/archipelago.R")
+
 # source("testdata.R")
 
 source("plots.R")
@@ -31,12 +33,12 @@ source("utils.R")
 # Data functions ---------------------------------------------------------------
 # https://deanattali.com/blog/shiny-persistent-data-storage/
 
-saveData <- function(data) {
-  saveRDS(data, "data.rds")
+saveData <- function(data, filename="data.rds") {
+  saveRDS(data, filename)
   }
 
-loadData <- function() {
-  data <- readRDS("data.rds")
+loadData <- function(filename="data.rds") {
+  data <- readRDS(filename)
   return(data)
 }
 
@@ -51,6 +53,11 @@ loadcsv <- function(filepath) {
 
 mydata <- loadData()
 # mydata <- loadcsv("data.csv")
+
+load_scenarios <- function(filepath) {
+  scen_list <- read.csv(filepath, na.strings = "NA")
+}
+scen_list <- load_scenarios("archipelago/scenario_list.csv")
 
 players <- mydata %>%
   select(id, starts_with("name")) %>%
@@ -93,6 +100,10 @@ ui = fluidPage(
                column(width=3,
                       checkboxInput(inputId="nature_incarnate",
                                     label="Nature Incarnate?",
+                                    value=FALSE)),
+               column(width=3,
+                      checkboxInput(inputId="archipelago",
+                                    label="Archipelago",
                                     value=FALSE))
              ),
              fluidRow(
@@ -106,6 +117,7 @@ ui = fluidPage(
                       sliderInput("player_n", "Number of players",
                                   1, 4, 2, step=1, ticks=FALSE))
              ),
+             uiOutput("Archipelago"),
              hr(),
              uiOutput("Players"),
              hr(),
@@ -141,6 +153,7 @@ ui = fluidPage(
              ),
              helpText("For a victory, count the invader cards remaining in the deck.",
                       "For a defeat, count the invader cards *not* in the deck."),
+             uiOutput("Archipelago_unlocks"),
              hr(),
              fluidRow(
                id="victory",
@@ -186,11 +199,19 @@ ui = fluidPage(
                      plotlyOutput("spirit_friends", inline=TRUE, height="60vmin", width="70vmin")
                      )
                  )
+    ),
+    tabPanel("Archipelago",
+             selectInput(inputId="",
+                         label="",
+                         choices=c(),
+                         selected="",
+                         selectize=FALSE)#,
              
-      
+             # dataTableOutput("scores")
     ),
     tabPanel("Backup",
              downloadButton("downloadData", "Download"),
+             downloadButton("downloadArc", "Download Archipelago"),
              fileInput("file1", "Choose CSV File",
                        multiple = TRUE,
                        accept = c("text/csv",
@@ -204,6 +225,38 @@ ui = fluidPage(
 
 server = function(input, output, session) {
   iv <- InputValidator$new()
+  
+  ######################
+  # Spirit Archipelago #
+  ######################
+  
+  output$Archipelago <- renderUI({
+    if(input$archipelago) {
+      
+      fluidRow(
+        id="arch",
+        hr(),
+        column(width=2, offset=0,
+               selectInput(inputId="arc_scen",
+                           label="Scenario:",
+                           choices=get_available(scen_list, arc_log),
+                           selectize=FALSE)),
+        column(width=2,
+               selectInput(inputId="use_artifact",
+                           label="Use artifact?",
+                           choices=c("None", 
+                                     get_artifacts(arc_log)),
+                           selectize=FALSE)),
+        column(width=2,
+               selectInput(inputId="use_flag",
+                           label="Use flag?",
+                           choices=c("None",
+                                     get_flags(arc_log)),
+                           selectize=FALSE))
+      )
+      
+    }
+  })
   
   ######################
   # Spirits and Boards #
