@@ -16,6 +16,11 @@ aspect_list <- list("River Surges in Sunlight"=c("None"),
                     "Lightning's Swift Strike"=c("None"),
                     "Shadows Flicker Like Flame"=c("None"))
 
+powerprog_list <- list("River Surges in Sunlight",
+                       "Vital Strength of the Earth",
+                       "Lightning's Swift Strike",
+                       "Shadows Flicker Like Flame")
+
 boards <- c("A", "B", "C", "D")
 
 adversaries <- list("None"=c(0),
@@ -88,6 +93,12 @@ ho_spirits <- list("Devouring Teeth Lurk Underfoot",
                    "Fathomless Mud of the Swamp",
                    "Rising Heat of Stone and Sand",
                    "Sun-Bright Whirlwind")
+
+ho_powerprog <- list("Devouring Teeth Lurk Underfoot",
+                     "Eyes Watch From the Trees",
+                     "Fathomless Mud of the Swamp",
+                     "Rising Heat of Stone and Sand",
+                     "Sun-Bright Whirlwind")
 
 # Nature Incarnate
 ni_spirits <- list("Ember-Eyed Behemoth",

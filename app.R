@@ -271,7 +271,7 @@ server = function(input, output, session) {
     # Jagged Earth expansion
     if(input$jagged_earth) {
       spirits[["Jagged Earth"]] <- je_spirits
-      aspect_list <- Map(c, aspect_list, je_aspects)
+      aspect_list <- map_aspects(aspect_list, je_aspects)
       boards <- c(boards, "E", "F")
       
       updateSliderInput(session, "player_n", value = input$player_n,
@@ -283,16 +283,18 @@ server = function(input, output, session) {
     # Feather and Flame expansion
     if(input$feather_flame) {
       spirits[["Feather and Flame"]] <- ff_spirits
-      aspect_list <- Map(c, aspect_list, ff_aspects)
+      aspect_list <- map_aspects(aspect_list, ff_aspects)
     }
     # Horizons expansion
     if(input$horizons) {
       spirits[["Horizons of Spirit Island"]] <- ho_spirits
+      powerprog_list <- c(powerprog_list, ho_powerprog)
+      print(powerprog_list)
     }
     # Nature Incarnate expansion
     if(input$nature_incarnate) {
       spirits[["Nature Incarnate"]] <- ni_spirits
-      aspect_list <- Map(c, aspect_list, ni_aspects)
+      aspect_list <- map_aspects(aspect_list, ni_aspects)
     }
     
     interaction <- lapply(seq_len(input$player_n), function(x) {
@@ -316,7 +318,7 @@ server = function(input, output, session) {
                   input[[paste0("spirit", x)]] %in% names(aspect_list)){
                  selectInput(inputId=paste0("aspect", x),
                              label="Aspect:",
-                             choices=aspect_list[input[[paste0("spirit", x)]]],
+                             choices=aspect_list[[input[[paste0("spirit", x)]]]],
                              selectize=FALSE
                  )
                }}),
@@ -328,7 +330,7 @@ server = function(input, output, session) {
                          selectize=FALSE),
              # Power progressions?
              renderUI({
-               if(input[[paste0("spirit", x)]] %in% names(aspect_list)){
+               if(input[[paste0("spirit", x)]] %in% powerprog_list){
                  checkboxInput(inputId=paste0("powerprog",x),
                                label="Power Progression?",
                                value=FALSE)
