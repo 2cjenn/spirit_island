@@ -297,6 +297,10 @@ server = function(input, output, session) {
       aspect_list <- map_aspects(aspect_list, ni_aspects)
     }
     
+    spirit_list <<- spirits
+    aspects <<- aspect_list
+    
+    
     interaction <- lapply(seq_len(input$player_n), function(x) {
       column(width=floor(12/input$player_n),
              # Player name
@@ -431,6 +435,55 @@ server = function(input, output, session) {
                helpText(difficulty))
       })
     )
+  })
+  
+  #######################
+  # Archipelago Results #
+  #######################
+  
+  output$Archipelago_unlocks <- renderUI({
+    if(input$archipelago) {
+      
+      s <- unlist(spirit_list, use.names=FALSE)
+      locked_spirits <- c("None", s[! s %in% unique(arc_log$spirit_unlocked)])
+      
+      a <- unlist(aspects, use.names=FALSE)
+      locked_aspects <- a[! a %in% unique(arc_log$aspect_unlocked)]
+      
+      fluidRow(
+        id="arch",
+        hr(),
+        column(width=2, offset=0,
+               selectInput(inputId="unlock_spirit",
+                           label="Unlock spirit?",
+                           choices=locked_spirits,
+                           selectize=FALSE)),
+        column(width=2,
+               selectInput(inputId="unlock_aspect",
+                           label="Unlock aspect?",
+                           choices=locked_aspects,
+                           selectize=FALSE)),
+        column(width=2,
+               textInput(inputId="unlock_artifacts",
+                           label="Unlock artifact?",
+                           value=NA,
+                           placeholder="Artifact(s) unlocked, comma separated")),
+        column(width=2,
+               textInput(inputId="unlock_flags",
+                           label="Unlock flag?",
+                           value=NA,
+                         placeholder="Flag(s) unlocked, comma separated")),
+        column(width=3,
+               checkboxInput(inputId="annex4",
+                             label="Annex 4?",
+                             value=FALSE)),
+        column(width=3,
+               checkboxInput(inputId="annex5",
+                             label="Annex 5?",
+                             value=FALSE))
+      )
+      
+    }
   })
   
   # When the Submit button is clicked, save the form data
