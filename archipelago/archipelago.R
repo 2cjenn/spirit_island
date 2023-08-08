@@ -4,10 +4,9 @@ arc_log <- read.csv("archipelago/arc_log.csv",
                     colClasses = c("artifact_unlocked" = "character"))
 scen_list <- read.csv("archipelago/scenario_list.csv", 
                       na.strings = c("NA", ""))
-# artifact_list <- read.csv("archipelago/artifact_list.csv", na.strings = "NA")
-# flag_list <- read.csv("archipelago/flag_list.csv", na.strings = "NA")
 unlock_list <- read.csv("archipelago/unlock_list.csv", na.strings = c("NA", ""))
 
+# Check for completed scenarios
 get_complete <- function(arc_log) {
   victory <- arc_log %>% 
     filter(victory=="y") %>%
@@ -25,7 +24,7 @@ get_complete <- function(arc_log) {
   return(complete)
 }
 
-
+# Find currently available scenarios
 get_available <- function(scen_list, arc_log) {
   complete <- get_complete(arc_log)
   
@@ -51,10 +50,9 @@ get_available <- function(scen_list, arc_log) {
   return(available)
 }
 
-get_available(scen_list, arc_log)
+# get_available(scen_list, arc_log)
 
-
-
+# Get available artifacts
 get_artifacts <- function(arc_log) {
   unlocked <- arc_log$artifact_unlocked
   used <- arc_log$artifact
@@ -63,6 +61,7 @@ get_artifacts <- function(arc_log) {
   return(sort(available))
 }
 
+# Get available flags
 get_flags <- function(arc_log) {
   unlocked <- arc_log$flag_unlocked
   used <- arc_log$flag[arc_log$victory=="y"]
@@ -71,26 +70,8 @@ get_flags <- function(arc_log) {
   return(sort(available))
 }
 
-obtain_artifact <- function(artifact_list, arc_log) {
-  complete <- get_complete(arc_log)
-  used_artifacts <- arc_log$artifact[arc_log$victory=="y"]
-  
-  available_artifacts <- artifact_list[artifact_list$Scenario %in% complete & 
-                                 !(artifact_list$Artifact %in% used_artifacts)]
-  return(sort(available_artifacts))
-}
-
-obtain_flag <- function(flag_list, arc_log) {
-  complete <- get_complete(arc_log)
-  used_flags <- arc_log$flag[arc_log$victory=="y"]
-  
-  available_flags <- flag_list$Flag[flag_list$Scenario %in% complete & 
-                                 !(flag_list$Flag %in% used_flags)]
-  return(paste0(sort(available_flags), collapse=", "))
-}
-
-
-gen_arcrow <- function(input, arc_log) {
+# Generate a row for the Archipelago Log
+gen_arcrow <- function(input, victory, arc_log) {
   influence <- arc_log %>% 
     slice_max(game) %>% 
     pull(influence)
