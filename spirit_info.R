@@ -11,10 +11,7 @@ spirits <- list(
                        "Bringer of Dreams and Nightmares"
   ))
 
-aspect_list <- list("River Surges in Sunlight"=c("None"),
-                    "Vital Strength of the Earth"=c("None"),
-                    "Lightning's Swift Strike"=c("None"),
-                    "Shadows Flicker Like Flame"=c("None"))
+aspect_list <- list()
 
 powerprog_list <- list("River Surges in Sunlight",
                        "Vital Strength of the Earth",

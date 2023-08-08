@@ -22,6 +22,8 @@ library(plotly)
 
 source("spirit_info.R")
 
+source("archipelago/archipelago.R")
+
 # source("testdata.R")
 
 source("plots.R")
@@ -31,12 +33,12 @@ source("utils.R")
 # Data functions ---------------------------------------------------------------
 # https://deanattali.com/blog/shiny-persistent-data-storage/
 
-saveData <- function(data) {
-  saveRDS(data, "data.rds")
+saveData <- function(data, filename="data.rds") {
+  saveRDS(data, filename)
   }
 
-loadData <- function() {
-  data <- readRDS("data.rds")
+loadData <- function(filename="data.rds") {
+  data <- readRDS(filename)
   return(data)
 }
 
@@ -49,8 +51,19 @@ loadcsv <- function(filepath) {
   return(mydata)
 }
 
+loadarc <- function(filepath) {
+  arc_log <- read.csv(filepath,
+                      na.strings = c("NA", ""),
+                      colClasses = c("artifact_unlocked" = "character")) %>%
+    mutate(date = as.Date(date, tryFormats = c("%Y-%m-%d", "%d/%m/%Y")))
+  return(arc_log)
+}
+
 mydata <- loadData()
 # mydata <- loadcsv("data.csv")
+
+arc_log <- loadData("arc_log.rds")
+# arc_log <- loadarc("archipelago/arc_log.csv")
 
 players <- mydata %>%
   select(id, starts_with("name")) %>%
@@ -93,6 +106,10 @@ ui = fluidPage(
                column(width=3,
                       checkboxInput(inputId="nature_incarnate",
                                     label="Nature Incarnate?",
+                                    value=FALSE)),
+               column(width=3,
+                      checkboxInput(inputId="archipelago",
+                                    label="Archipelago",
                                     value=FALSE))
              ),
              fluidRow(
@@ -106,6 +123,7 @@ ui = fluidPage(
                       sliderInput("player_n", "Number of players",
                                   1, 4, 2, step=1, ticks=FALSE))
              ),
+             uiOutput("Archipelago"),
              hr(),
              uiOutput("Players"),
              hr(),
@@ -141,6 +159,7 @@ ui = fluidPage(
              ),
              helpText("For a victory, count the invader cards remaining in the deck.",
                       "For a defeat, count the invader cards *not* in the deck."),
+             uiOutput("Archipelago_unlocks"),
              hr(),
              fluidRow(
                id="victory",
@@ -186,11 +205,16 @@ ui = fluidPage(
                      plotlyOutput("spirit_friends", inline=TRUE, height="60vmin", width="70vmin")
                      )
                  )
+    ),
+    tabPanel("Archipelago",
              
-      
+             uiOutput("available"),
+             hr(),
+             dataTableOutput("archipelago_log")
     ),
     tabPanel("Backup",
              downloadButton("downloadData", "Download"),
+             downloadButton("downloadArc", "Download Archipelago"),
              fileInput("file1", "Choose CSV File",
                        multiple = TRUE,
                        accept = c("text/csv",
@@ -204,6 +228,40 @@ ui = fluidPage(
 
 server = function(input, output, session) {
   iv <- InputValidator$new()
+  
+  ######################
+  # Spirit Archipelago #
+  ######################
+  
+  output$Archipelago <- renderUI({
+    if(input$archipelago) {
+      
+      arc_log <- arc()
+      
+      fluidRow(
+        id="arch",
+        hr(),
+        column(width=2, offset=0,
+               selectInput(inputId="arc_scenario",
+                           label="Scenario:",
+                           choices=get_available(arc_log, scen_list),
+                           selectize=FALSE)),
+        column(width=2,
+               selectInput(inputId="use_artifact",
+                           label="Use artifact?",
+                           choices=c("None", 
+                                     get_artifacts(arc_log)),
+                           selectize=FALSE)),
+        column(width=2,
+               selectInput(inputId="use_flag",
+                           label="Use flag?",
+                           choices=c("None",
+                                     get_flags(arc_log)),
+                           selectize=FALSE))
+      )
+      
+    }
+  })
   
   ######################
   # Spirits and Boards #
@@ -243,6 +301,10 @@ server = function(input, output, session) {
       spirits[["Nature Incarnate"]] <- ni_spirits
       aspect_list <- map_aspects(aspect_list, ni_aspects)
     }
+    
+    spirit_list <<- spirits
+    aspects <<- aspect_list
+    
     
     interaction <- lapply(seq_len(input$player_n), function(x) {
       column(width=floor(12/input$player_n),
@@ -380,6 +442,57 @@ server = function(input, output, session) {
     )
   })
   
+  #######################
+  # Archipelago Results #
+  #######################
+  
+  output$Archipelago_unlocks <- renderUI({
+    if(input$archipelago) {
+      
+      arc_log <- arc()
+      
+      s <- unlist(spirit_list, use.names=FALSE)
+      locked_spirits <- c("None", s[! s %in% unique(arc_log$spirit_unlocked)])
+      
+      a <- unique(unlist(aspects, use.names=FALSE))
+      locked_aspects <- a[! a %in% unique(arc_log$aspect_unlocked)]
+      
+      fluidRow(
+        id="arch",
+        hr(),
+        column(width=2, offset=0,
+               selectInput(inputId="unlock_spirit",
+                           label="Unlock spirit?",
+                           choices=locked_spirits,
+                           selectize=FALSE)),
+        column(width=2,
+               selectInput(inputId="unlock_aspect",
+                           label="Unlock aspect?",
+                           choices=locked_aspects,
+                           selectize=FALSE)),
+        column(width=2,
+               textInput(inputId="unlock_artifacts",
+                           label="Unlock artifact?",
+                           value=NA,
+                           placeholder="Artifact(s) unlocked, comma separated")),
+        column(width=2,
+               textInput(inputId="unlock_flags",
+                           label="Unlock flag?",
+                           value=NA,
+                         placeholder="Flag(s) unlocked, comma separated")),
+        column(width=3,
+               checkboxInput(inputId="annex4",
+                             label="Annex 4?",
+                             value=FALSE)),
+        column(width=3,
+               checkboxInput(inputId="annex5",
+                             label="Annex 5?",
+                             value=FALSE))
+      )
+      
+    }
+  })
+  
   # When the Submit button is clicked, save the form data
   observeEvent(input$victory, {
     if(input$victory>0){
@@ -390,6 +503,12 @@ server = function(input, output, session) {
       mydata <<- rbind(mydata, newrow)
     }
     saveData(mydata)
+    
+    if(input$archipelago) {
+      newrow <- gen_arcrow(input, victory=TRUE, arc_log)
+      arc_log <<- rbind(arc_log, newrow)
+      saveData(arc_log, "arc_log.rds")
+    }
     
     showNotification(paste0("Well Done! Score of ", score, " recorded"))
   })
@@ -404,6 +523,12 @@ server = function(input, output, session) {
     }
     saveData(mydata)
     
+    if(input$archipelago) {
+      newrow <- gen_arcrow(input, victory=FALSE, arc_log)
+      arc_log <<- rbind(arc_log, newrow)
+      saveData(arc_log, "arc_log.rds")
+    }
+    
     showNotification(paste0("Better luck next time! Score of ", score, " recorded"))
   })
   
@@ -413,6 +538,10 @@ server = function(input, output, session) {
   
   df <- eventReactive(c(input$victory, input$defeat), {
     data.frame(mydata)
+  })
+  
+  arc <- eventReactive(c(input$victory, input$defeat), {
+    data.frame(arc_log)
   })
   
   # Show the previous responses
@@ -470,15 +599,56 @@ server = function(input, output, session) {
   # Global plots
   output$spirit_friends <- renderPlotly(spirit_friends(players_long(df())))
   
+  ###############
+  # Archipelago #
+  ###############
+  
+  output$available <- renderUI({
+    arc_log <- arc()
+    
+    available_scenarios <- get_available(arc_log, scen_list)
+    
+    s <- unlist(spirit_list, use.names=FALSE)
+    unlocked_spirits <- s[s %in% unique(arc_log$spirit_unlocked)]
+    
+    a <- unique(unlist(aspects, use.names=FALSE))
+    unlocked_aspects <- a[a %in% unique(arc_log$aspect_unlocked)]
+    
+    fluidRow(
+      id="arch",
+      hr(),
+      renderText(paste0("Available scenarios: ", paste0(available_scenarios, collapse=", "))),
+      renderText(paste0("Unlocked spirits: ", paste0(unlocked_spirits, collapse=", "))),
+      renderText(paste0("Unlocked aspects: ", paste0(unlocked_aspects, collapse=", "))),
+    )
+    
+    
+  })
+  
+  output$archipelago_log <- DT::renderDataTable({
+    arc_log <- arc()
+    arc_log %>% arrange(desc(game))
+  },
+  options=list(
+    pageLength=5)
+  )
+  
   #######################
   # Download and upload #
   #######################
   
   # Download
   output$downloadData <- downloadHandler(
-    filename = paste0("spiritisland_data_",format(Sys.Date(), "%Y%m%d"), ".csv"),
+    filename = paste0("spiritisland_data_", format(Sys.Date(), "%Y%m%d"), ".csv"),
     content = function(file) {
       write.csv(mydata, file, row.names = FALSE)
+    }
+  )
+  
+  output$downloadArc <- downloadHandler(
+    filename = paste0("archipelago_data_", format(Sys.Date(), "%Y%m%d"), ".csv"),
+    content = function(file) {
+      write.csv(arc_log, file, row.names = FALSE, na="")
     }
   )
   
