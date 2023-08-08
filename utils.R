@@ -177,4 +177,7 @@ map_aspects <- function(aspect_list, aspects) {
   return(aspect_list)
 }
 
-
+# None to NA
+ifnone <- function(x) {
+  ifelse(x=="None", NA, x)
+}

@@ -497,6 +497,12 @@ server = function(input, output, session) {
     }
     saveData(mydata)
     
+    if(input$archipelago) {
+      newrow <- gen_arcrow(input, victory=TRUE, arc_log)
+      arc_log <<- rbind(arc_log, newrow)
+      saveData(arc_log, "arc_log.rds")
+    }
+    
     showNotification(paste0("Well Done! Score of ", score, " recorded"))
   })
   
@@ -509,6 +515,12 @@ server = function(input, output, session) {
       mydata <<- rbind(mydata, newrow)
     }
     saveData(mydata)
+    
+    if(input$archipelago) {
+      newrow <- gen_arcrow(input, victory=FALSE, arc_log)
+      arc_log <<- rbind(arc_log, newrow)
+      saveData(arc_log, "arc_log.rds")
+    }
     
     showNotification(paste0("Better luck next time! Score of ", score, " recorded"))
   })
@@ -582,9 +594,16 @@ server = function(input, output, session) {
   
   # Download
   output$downloadData <- downloadHandler(
-    filename = paste0("spiritisland_data_",format(Sys.Date(), "%Y%m%d"), ".csv"),
+    filename = paste0("spiritisland_data_", format(Sys.Date(), "%Y%m%d"), ".csv"),
     content = function(file) {
       write.csv(mydata, file, row.names = FALSE)
+    }
+  )
+  
+  output$downloadArc <- downloadHandler(
+    filename = paste0("archipelago_data_", format(Sys.Date(), "%Y%m%d"), ".csv"),
+    content = function(file) {
+      write.csv(arc_log, file, row.names = FALSE, na="")
     }
   )
   

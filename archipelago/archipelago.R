@@ -94,16 +94,20 @@ gen_arcrow <- function(input, victory, arc_log) {
   } # If flag was used in a game that was lost, can use again
   
   newrow <- data.table(
+    game = max(arc_log$game) + 1,
     scenario = input$scenario,
-    artifact = ifelse(input$use_artifact=="None", NA, input$use_artifact),
-    flag = ifelse(input$use_flag=="None", NA, input$use_flag),
-    victory = input$victory,
+    artifact = ifnone(input$use_artifact),
+    flag = ifnone(input$use_flag),
+    victory = victory,
     influence = influence,
-    spirit_unlocked = input$unlock_spirit,
+    spirit_unlocked = ifnone(input$unlock_spirit),
+    aspect_unlocked = ifnone(input$unlock_aspect),
     artifact_unlocked = input$unlock_artifacts,
     flag_unlocked = input$unlock_flags,
     annex4 = input$annex4,
     annex5 = input$annex5
   )
+  
+  return(newrow)
 }
 
