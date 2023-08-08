@@ -76,6 +76,7 @@ gen_datarow <- function(input, victory, score, difficulty){
                       level = input$adv_level,
                       scenario = input$scenario,
                       difficulty = difficulty,
+                      archipelago_scenario = ifelse(input$archipelago, input$arc_scenario, ""),
                       victory = victory,
                       invader_cards = input$invader_cards,
                       dahan = input$dahan,

@@ -95,6 +95,7 @@ gen_arcrow <- function(input, victory, arc_log) {
   
   newrow <- data.table(
     game = max(arc_log$game) + 1,
+    date = input$date,
     scenario = input$arc_scenario,
     artifact = ifnone(input$use_artifact),
     flag = ifnone(input$use_flag),

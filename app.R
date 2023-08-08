@@ -51,13 +51,19 @@ loadcsv <- function(filepath) {
   return(mydata)
 }
 
+loadarc <- function(filepath) {
+  arc_log <- read.csv(filepath,
+                      na.strings = c("NA", ""),
+                      colClasses = c("artifact_unlocked" = "character")) %>%
+    mutate(date = as.Date(date, tryFormats = c("%Y-%m-%d", "%d/%m/%Y")))
+  return(arc_log)
+}
+
 mydata <- loadData()
 # mydata <- loadcsv("data.csv")
 
-load_scenarios <- function(filepath) {
-  scen_list <- read.csv(filepath, na.strings = c("", "NA"))
-}
-scen_list <- load_scenarios("archipelago/scenario_list.csv")
+arc_log <- loadData("arc_log.rds")
+# arc_log <- loadarc("archipelago/arc_log.csv")
 
 players <- mydata %>%
   select(id, starts_with("name")) %>%
