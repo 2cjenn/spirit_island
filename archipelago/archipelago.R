@@ -9,7 +9,7 @@ unlock_list <- read.csv("archipelago/unlock_list.csv", na.strings = c("NA", ""))
 # Check for completed scenarios
 get_complete <- function(arc_log) {
   victory <- arc_log %>% 
-    filter(victory=="y") %>%
+    filter(victory==TRUE) %>%
     pull(scenario) %>%
     unique()
   
@@ -25,7 +25,7 @@ get_complete <- function(arc_log) {
 }
 
 # Find currently available scenarios
-get_available <- function(scen_list, arc_log) {
+get_available <- function(arc_log, scen_list) {
   complete <- get_complete(arc_log)
   
   unavailable <- scen_list %>%
@@ -57,16 +57,16 @@ get_artifacts <- function(arc_log) {
   unlocked <- arc_log$artifact_unlocked
   used <- arc_log$artifact
   available <- unlocked[!is.na(unlocked) & !(unlocked %in% used)]
-  available <- unlist(strsplit(available, split=", "))
+  available <- as.numeric(unlist(strsplit(available, split=", |,")))
   return(sort(available))
 }
 
 # Get available flags
 get_flags <- function(arc_log) {
   unlocked <- arc_log$flag_unlocked
-  used <- arc_log$flag[arc_log$victory=="y"]
+  used <- arc_log$flag[arc_log$victory==TRUE]
   available <- unlocked[!is.na(unlocked) & !(unlocked %in% used)]
-  available <- unlist(strsplit(available, split=", "))
+  available <- as.numeric(unlist(strsplit(available, split=", |,")))
   return(sort(available))
 }
 
@@ -77,25 +77,25 @@ gen_arcrow <- function(input, victory, arc_log) {
     pull(influence)
   
   if(input$victory == TRUE & 
-     !(input$scenario %in% arc_log$scenario)) {
+     !(input$arc_scenario %in% arc_log$scenario)) {
     influence <- influence + 4
   } else if (input$victory == TRUE){
     influence <- influence + 2
   }
-  if(!is.na(input$unlock_spirit)) {
+  if(input$unlock_spirit!="None") {
     influence <- influence + 10
   }
-  if(!is.na(input$use_artifact)) {
+  if(input$use_artifact!="None") {
     influence <- influence - 6
   }
-  if(!is.na(input$use_flag) &
+  if((input$use_flag!="None") &
      !(input$use_flag %in% arc_log$flag)) {
     influence <- influence - 10
   } # If flag was used in a game that was lost, can use again
   
   newrow <- data.table(
     game = max(arc_log$game) + 1,
-    scenario = input$scenario,
+    scenario = input$arc_scenario,
     artifact = ifnone(input$use_artifact),
     flag = ifnone(input$use_flag),
     victory = victory,

@@ -233,13 +233,15 @@ server = function(input, output, session) {
   output$Archipelago <- renderUI({
     if(input$archipelago) {
       
+      arc_log <- arc()
+      
       fluidRow(
         id="arch",
         hr(),
         column(width=2, offset=0,
-               selectInput(inputId="arc_scen",
+               selectInput(inputId="arc_scenario",
                            label="Scenario:",
-                           choices=get_available(scen_list, arc_log),
+                           choices=get_available(arc_log, scen_list),
                            selectize=FALSE)),
         column(width=2,
                selectInput(inputId="use_artifact",
@@ -444,10 +446,12 @@ server = function(input, output, session) {
   output$Archipelago_unlocks <- renderUI({
     if(input$archipelago) {
       
+      arc_log <- arc()
+      
       s <- unlist(spirit_list, use.names=FALSE)
       locked_spirits <- c("None", s[! s %in% unique(arc_log$spirit_unlocked)])
       
-      a <- unlist(aspects, use.names=FALSE)
+      a <- unique(unlist(aspects, use.names=FALSE))
       locked_aspects <- a[! a %in% unique(arc_log$aspect_unlocked)]
       
       fluidRow(
@@ -531,6 +535,10 @@ server = function(input, output, session) {
   
   df <- eventReactive(c(input$victory, input$defeat), {
     data.frame(mydata)
+  })
+  
+  arc <- eventReactive(c(input$victory, input$defeat), {
+    data.frame(arc_log)
   })
   
   # Show the previous responses
