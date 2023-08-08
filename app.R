@@ -207,13 +207,10 @@ ui = fluidPage(
                  )
     ),
     tabPanel("Archipelago",
-             selectInput(inputId="",
-                         label="",
-                         choices=c(),
-                         selected="",
-                         selectize=FALSE)#,
              
-             # dataTableOutput("scores")
+             uiOutput("available"),
+             hr(),
+             dataTableOutput("archipelago_log")
     ),
     tabPanel("Backup",
              downloadButton("downloadData", "Download"),
@@ -601,6 +598,40 @@ server = function(input, output, session) {
   
   # Global plots
   output$spirit_friends <- renderPlotly(spirit_friends(players_long(df())))
+  
+  ###############
+  # Archipelago #
+  ###############
+  
+  output$available <- renderUI({
+    arc_log <- arc()
+    
+    available_scenarios <- get_available(arc_log, scen_list)
+    
+    s <- unlist(spirit_list, use.names=FALSE)
+    unlocked_spirits <- s[s %in% unique(arc_log$spirit_unlocked)]
+    
+    a <- unique(unlist(aspects, use.names=FALSE))
+    unlocked_aspects <- a[a %in% unique(arc_log$aspect_unlocked)]
+    
+    fluidRow(
+      id="arch",
+      hr(),
+      renderText(paste0("Available scenarios: ", paste0(available_scenarios, collapse=", "))),
+      renderText(paste0("Unlocked spirits: ", paste0(unlocked_spirits, collapse=", "))),
+      renderText(paste0("Unlocked aspects: ", paste0(unlocked_aspects, collapse=", "))),
+    )
+    
+    
+  })
+  
+  output$archipelago_log <- DT::renderDataTable({
+    arc_log <- arc()
+    arc_log %>% arrange(desc(game))
+  },
+  options=list(
+    pageLength=5)
+  )
   
   #######################
   # Download and upload #
