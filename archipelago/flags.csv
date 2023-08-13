@@ -1,0 +1,16 @@
+Flag,Description,Effect
+1,A tattered Prussian flag,Accelerate the invader deck
+2,A Prussian flag proudly floating in the wind,Add Brandenburg-Prussia 1 as a second adversary. Cannot be used if Brandenburg-Prussia is already your adversary.
+3,An abandoned English flag,Towns and Cities have +1 Health for the entire game.
+4,An oversized English flag destined for the tallest of buildings,Add England 1 as a second adversary. Cannot be used if England is already your adversary.
+5,A drenched Swedish flag,Blight added by Ravage always cascades.
+6,A Swedish flag bright with hopes and promises,Add Sweden 1 as a second adversary. Cannot be used if Sweden is already your adversary.
+7,A ripped French flag,"Additional loss condition: Before setup, return all but 7 towns per player to the box. Invaders win if you ever cannot place a town. Cannot be used when playing against France."
+8,A French flag victoriously planted on the shore,Add France 1 as a second adversary. Cannot be used if France is already your adversary.
+9,A trampled Habsburg flag,Ravages do +2 damage (total) if any adjacent lands have a town. This does not cause lands without invaders to ravage.
+10,"A majestic Habsburg flag, standing tall",Add Habsburg 1 as a second adversary. Cannot be used if Habsburg is already your adversary.
+11,A forgotten Russian flag,Whenever an explorer is destroyed - instead push it. This flag cannot be used if Bringer of Dreams and Nightmares is in play.
+12,A glorious Russian flag throned atop a stack of pelts,Add Russia 1 as a second adversary. Cannot be used if Russia is already your adversary.
+13,A burnt Scottish flag,"Oceans are in play, and count as an additional wetland for all purposes. This flag cannot be unlocked with Ocean’s Hungry Grasp."
+14,A majestic Scottish flag waving with the sea breeze,Add Scotland 1 as a second adversary. Cannot be used if Scotland is already your adversary.
+15,A flag bearing the colours of a long-forgotten nation,Increase Adversary Level by 1

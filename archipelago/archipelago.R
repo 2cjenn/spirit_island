@@ -6,6 +6,9 @@ scen_list <- read.csv("archipelago/scenario_list.csv",
                       na.strings = c("NA", ""))
 unlock_list <- read.csv("archipelago/unlock_list.csv", na.strings = c("NA", ""))
 
+artifacts_csv <- read.csv("archipelago/artifacts.csv")
+flags_csv <- read.csv("archipelago/flags.csv")
+
 # Check for completed scenarios
 get_complete <- function(arc_log) {
   victory <- arc_log %>% 
@@ -33,17 +36,19 @@ get_available <- function(arc_log, scen_list) {
     pull(ID) %>%
     unique()
   
-  available <- scen_list %>% 
-    mutate(spirits = ifelse(!is.na(spirits), 
-                            strsplit(spirits, split=", "), NA),
-           except_spirits = ifelse(!is.na(except_spirits),
-                             strsplit(except_spirits, split=", "), NA)) %>%
+  unlocked_spirits <- arc_log %>%
+    drop_na(spirit_unlocked) %>%
+    pull(spirit_unlocked)
+  
+  available <- scen_list %>%
+    separate(spirits, into=c("req1", "req2"), sep=", ", remove=FALSE) %>%
     filter(! ID %in% unavailable,
            prereq %in% complete,
            ! ID %in% complete,
-           (is.na(spirits) | spirits %in% arc_log[["spirit_unlocked"]]),
-           (is.na(except_spirits) | any(!arc_log[["spirit_unlocked"]] %in% except_spirits)),
-           (is.na(annex4) | TRUE %in% arc_log[["annex4"]])) %>%
+           (is.na(annex4) | TRUE %in% arc_log[["annex4"]]),
+           (is.na(spirits) | 
+              if_all(starts_with("req"), 
+                     function(x){x %in% unlocked_spirits}))) %>%
     pull(ID) %>%
     unique()
   
@@ -54,19 +59,21 @@ get_available <- function(arc_log, scen_list) {
 
 # Get available artifacts
 get_artifacts <- function(arc_log) {
-  unlocked <- arc_log$artifact_unlocked
+  unlocked <- strsplit(arc_log$artifact_unlocked, split=", |,") %>%
+    unlist() %>%
+    as.numeric()
   used <- arc_log$artifact
   available <- unlocked[!is.na(unlocked) & !(unlocked %in% used)]
-  available <- as.numeric(unlist(strsplit(available, split=", |,")))
   return(sort(available))
 }
 
 # Get available flags
 get_flags <- function(arc_log) {
-  unlocked <- arc_log$flag_unlocked
+  unlocked <- strsplit(arc_log$flag_unlocked, split=", |,") %>%
+    unlist() %>%
+    as.numeric()
   used <- arc_log$flag[arc_log$victory==TRUE]
   available <- unlocked[!is.na(unlocked) & !(unlocked %in% used)]
-  available <- as.numeric(unlist(strsplit(available, split=", |,")))
   return(sort(available))
 }
 
@@ -78,12 +85,12 @@ gen_arcrow <- function(input, victory, arc_log) {
   
   if(input$victory == TRUE & 
      !(input$arc_scenario %in% arc_log$scenario)) {
-    influence <- influence + 4
-  } else if (input$victory == TRUE){
     influence <- influence + 2
+  } else if (input$victory == TRUE){
+    influence <- influence + 1
   }
   if(input$unlock_spirit!="None") {
-    influence <- influence + 10
+    influence <- influence + 2
   }
   if(input$use_artifact!="None") {
     influence <- influence - 6
