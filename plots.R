@@ -24,17 +24,26 @@ fixed_jitter <- function (x, factor = 1, amount = NULL) {
 popular_spirit <- function(player_data) {
   spirits <- player_data %>% 
     filter(!is.na(spirit) & spirit != "") %>%
-    count(spirit) %>%
-    mutate(spirit = fct_reorder(spirit, n))
+    add_count(spirit) %>%
+    mutate(spirit = fct_reorder(spirit, n),
+           name = factor(name)) %>%
+    count(spirit, name) %>%
+    mutate(text = paste0(name, ": ", n))
   
-  plot_ly(
-    data = spirits,
-    x = ~spirit, y = ~n,
-    color = ~spirit, colors = spirit_colours,
-    type = "bar",
-    showlegend=FALSE
+  plot_ly(data = spirits) %>%
+    add_trace(
+      x = ~spirit, y = ~n,
+      # text = ~text,
+      hoverinfo = 'text',
+      hovertext = paste(spirits$name,
+                        ": ", spirits$n),
+      color = ~spirit, colors = spirit_colours,
+      type = "bar",
+      showlegend=FALSE,
+      marker=list(line=list(color="white", width=1))
   ) %>%
-    layout(title = "Popularity of each spirit")
+    layout(barmode = "stack",
+           title = "Popularity of each spirit")
 }
 
 #-------------------------------------------------------------------------------
