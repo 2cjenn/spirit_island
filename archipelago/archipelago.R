@@ -6,6 +6,9 @@ scen_list <- read.csv("archipelago/scenario_list.csv",
                       na.strings = c("NA", ""))
 unlock_list <- read.csv("archipelago/unlock_list.csv", na.strings = c("NA", ""))
 
+artifacts_csv <- read.csv("archipelago/artifacts.csv")
+flags_csv <- read.csv("archipelago/flags.csv")
+
 # Check for completed scenarios
 get_complete <- function(arc_log) {
   victory <- arc_log %>% 

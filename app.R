@@ -15,6 +15,7 @@ library(DT)
 library(data.table)
 library(bslib)
 library(plotly)
+library(stringr)
 
 # Spirit info ------------------------------------------------------------------
 
@@ -209,6 +210,14 @@ ui = fluidPage(
     tabPanel("Archipelago",
              
              uiOutput("available"),
+             hr(),
+             fluidRow(
+               id="art_flag",
+               column(width=6,
+                      dataTableOutput("artifacts")),
+               column(width=6,
+                      dataTableOutput("flags"))
+             ),
              hr(),
              dataTableOutput("archipelago_log")
     ),
@@ -558,7 +567,8 @@ server = function(input, output, session) {
     data[, columns]
     },
     options=list(
-      pageLength=20)
+      pageLength=20),
+    rownames=FALSE
     )
   
   #########
@@ -625,12 +635,37 @@ server = function(input, output, session) {
     
   })
   
+  output$artifacts <- DT::renderDataTable({
+    arc_log <- arc()
+    available <- get_artifacts(arc_log)
+    artifacts_csv %>% 
+      filter(Artifact %in% available) %>%
+      select(-Description) %>%
+      mutate(Effect = str_replace_all(Effect, pattern="\\. ", replacement=".<br/>"))
+  },
+  options=list(
+    pageLength=5),
+  rownames=FALSE, escape=FALSE)
+  
+  output$flags <- DT::renderDataTable({
+    arc_log <- arc()
+    available <- get_flags(arc_log)
+    flags_csv %>% 
+      filter(Flag %in% available) %>%
+      select(-Description) %>%
+      mutate(Effect = str_replace_all(Effect, pattern="\\. ", replacement=".<br/>"))
+  },
+  options=list(
+    pageLength=5),
+  rownames=FALSE, escape=FALSE)
+  
   output$archipelago_log <- DT::renderDataTable({
     arc_log <- arc()
     arc_log %>% arrange(desc(game))
   },
   options=list(
-    pageLength=5)
+    pageLength=5),
+  rownames=FALSE
   )
   
   #######################
