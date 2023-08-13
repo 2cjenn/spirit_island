@@ -36,17 +36,19 @@ get_available <- function(arc_log, scen_list) {
     pull(ID) %>%
     unique()
   
-  available <- scen_list %>% 
-    mutate(spirits = ifelse(!is.na(spirits), 
-                            strsplit(spirits, split=", "), NA),
-           except_spirits = ifelse(!is.na(except_spirits),
-                             strsplit(except_spirits, split=", "), NA)) %>%
+  unlocked_spirits <- arc_log %>%
+    drop_na(spirit_unlocked) %>%
+    pull(spirit_unlocked)
+  
+  available <- scen_list %>%
+    separate(spirits, into=c("req1", "req2"), sep=", ", remove=FALSE) %>%
     filter(! ID %in% unavailable,
            prereq %in% complete,
            ! ID %in% complete,
-           (is.na(spirits) | spirits %in% arc_log[["spirit_unlocked"]]),
-           (is.na(except_spirits) | any(!arc_log[["spirit_unlocked"]] %in% except_spirits)),
-           (is.na(annex4) | TRUE %in% arc_log[["annex4"]])) %>%
+           (is.na(annex4) | TRUE %in% arc_log[["annex4"]]),
+           (is.na(spirits) | 
+              if_all(starts_with("req"), 
+                     function(x){x %in% unlocked_spirits}))) %>%
     pull(ID) %>%
     unique()
   
