@@ -78,12 +78,12 @@ gen_arcrow <- function(input, victory, arc_log) {
   
   if(input$victory == TRUE & 
      !(input$arc_scenario %in% arc_log$scenario)) {
-    influence <- influence + 4
-  } else if (input$victory == TRUE){
     influence <- influence + 2
+  } else if (input$victory == TRUE){
+    influence <- influence + 1
   }
   if(input$unlock_spirit!="None") {
-    influence <- influence + 10
+    influence <- influence + 2
   }
   if(input$use_artifact!="None") {
     influence <- influence - 6
