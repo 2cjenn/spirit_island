@@ -83,11 +83,14 @@ gen_datarow <- function(input, victory, score, difficulty){
                       blight = input$blight,
                       score = score,
                       #invisible
+                      blighted_island = input$blighted_island,
+                      fear_level = input$fear_level,
                       branch_claw = input$branch_claw,
                       jagged_earth = input$jagged_earth,
                       feather_flame = input$feather_flame,
-                      blighted_island = input$blighted_island,
-                      fear_level = input$fear_level
+                      horizons = input$horizons,
+                      nature_incarnate = input$nature_incarnate,
+                      archipelago = input$archipelago
   )
   
   row = merge.data.table(players, newrow, by.x=c("id"), by.y=c("id"))

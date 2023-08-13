@@ -67,7 +67,7 @@ arc_log <- loadData("arc_log.rds")
 # arc_log <- loadarc("archipelago/arc_log.csv")
 
 players <- mydata %>%
-  select(id, starts_with("name")) %>%
+  select(id, starts_with("name"), archipelago) %>%
   pivot_longer(cols=paste0("name_", 1:6)) %>%
   filter(!is.na(value) & value != "")
 
@@ -187,11 +187,22 @@ ui = fluidPage(
              dataTableOutput("scores")
     ),
     tabPanel("Plots",
-             selectInput(inputId="filter_player",
-                         label="Player:",
-                         choices=c("All", unique(players$value)),
-                         selected="All",
-                         selectize=FALSE),
+             fluidRow(
+               id="victory",
+               column(width=6,
+                      selectInput(inputId="filter_player",
+                                  label="Player:",
+                                  choices=c("All", "T & J", unique(players$value)),
+                                  selected="All",
+                                  selectize=FALSE)),
+               column(width=6,
+                      selectInput(inputId="filter_archipelago",
+                                  label="Games:",
+                                  choices=c("All", "Archipelago only", "Non-Archipelago"),
+                                  selected="All",
+                                  selectize=FALSE))
+             ),
+             hr(),
              
              # Per-player plots
              plotlyOutput("pop_spirit", inline=TRUE),
@@ -577,24 +588,36 @@ server = function(input, output, session) {
   
   df_player <- reactive({
     data <- players_long(mydata)
-    if(input$filter_player != "All") {
+    if(input$filter_player == "T & J") {
       data <- data %>%
-        filter(name == input$filter_player) %>%
-        arrange(desc(id)) %>%
-        mutate(game = seq.int(nrow(.)))
+        filter(name %in% c("Thomas", "Jennifer"))
+    } else if(input$filter_player != "All") {
+      data <- data %>%
+        filter(name == input$filter_player)
     }
+    if(input$filter_archipelago == "Archipelago only") {
+      data <- data %>%
+        filter(archipelago == TRUE)
+    } else if (input$filter_archipelago == "Non-Archipelago") {
+      data <- data %>%
+        filter(archipelago == FALSE)
+    }
+    data <- data %>% 
+      arrange(desc(id)) %>%
+      mutate(game = seq.int(nrow(.)))
     return(data)
   }) %>% 
-    bindEvent(input$victory, input$defeat, input$filter_player)
+    bindEvent(input$victory, input$defeat, 
+              input$filter_player, input$filter_archipelago)
   
   observe({
     players <- df() %>%
-      select(id, starts_with("name")) %>%
+      select(id, starts_with("name"), archipelago) %>%
       pivot_longer(cols=paste0("name_", 1:6)) %>%
       filter(!is.na(value) & value != "")
 
     updateSelectInput(session, "filter_player",
-                      choices = c("All", unique(players$value)),
+                      choices = c("All", "T & J", unique(players$value)),
                       selected = "All")
     
   })
