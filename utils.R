@@ -85,6 +85,7 @@ gen_datarow <- function(input, victory, score, difficulty){
                       #invisible
                       blighted_island = input$blighted_island,
                       fear_level = input$fear_level,
+                      time_taken = ifelse(input$time_taken==0, NA, strftime(input$time_taken, "%R")),
                       branch_claw = input$branch_claw,
                       jagged_earth = input$jagged_earth,
                       feather_flame = input$feather_flame,
