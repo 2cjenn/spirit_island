@@ -178,6 +178,7 @@ ui = fluidPage(
                          label="Select columns to display", 
                          choices=c("date", "names", "spirits", "boards", "n_players",
                                    "adversary", "level", "scenario", "difficulty",
+                                   "archipelago_scenario", "board_layout", 
                                    "victory", "invader_cards", "dahan", "blight", "score",
                                    "blighted_island", "fear_level", "expansions"),
                          selected=c("date", "spirits", "adversary", "level", 
@@ -420,7 +421,7 @@ server = function(input, output, session) {
     
     fluidRow(
       # Adversary 
-      column(width=3,
+      column(width=2,
              selectInput(inputId="adversary",
                          label="Adversary:",
                          choices=names(adversaries),
@@ -442,12 +443,23 @@ server = function(input, output, session) {
                })
       }),
       # Scenario
-      column(width=4,
+      column(width=3,
              selectInput(inputId="scenario",
                          label="Scenario:",
                          choices=names(scenarios),
                          selectize=FALSE)
       ),
+      renderUI({
+        if(input$archipelago == TRUE) {
+          column(width=2,
+                 selectInput(inputId="layout",
+                             label="Layout:",
+                             choices=c("Standard", "Coastline", 
+                                       "Opposite Shores", "Fragment", 
+                                       "Archipelago"),
+                             selectize=FALSE))
+        }
+      }),
       # Difficulty calculation
       renderUI({
         adv_diff <- adversaries[[input$adversary]][input$adv_level + 1]
