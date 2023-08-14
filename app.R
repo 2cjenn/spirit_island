@@ -15,7 +15,7 @@ library(DT)
 library(data.table)
 library(bslib)
 library(plotly)
-library(stringr)
+library(shinyTime)
 
 # Spirit info ------------------------------------------------------------------
 
@@ -132,7 +132,7 @@ ui = fluidPage(
              hr(),
              
              fluidRow(
-               id="invad_scen",
+               id="score",
                column(width=2,
                       numericInput(inputId="invader_cards",
                                    label="Invader Cards",
@@ -151,12 +151,20 @@ ui = fluidPage(
                column(width=2,
                       checkboxInput(inputId="blighted_island",
                                     label="Blighted Island?",
-                                    value=FALSE)),
+                                    value=FALSE))
+               ),
+             fluidRow(
+               id="notes",
                column(width=2,
                       numericInput(inputId="fear_level",
                                    label="Fear Level",
                                    value=1,
-                                   min=1, max=4, step=1))
+                                   min=1, max=4, step=1)),
+               column(width=3,
+                      timeInput(inputId="time_taken",
+                                label="Duration",
+                                seconds=FALSE,
+                                minute.steps=5))
              ),
              helpText("For a victory, count the invader cards remaining in the deck.",
                       "For a defeat, count the invader cards *not* in the deck."),
@@ -178,7 +186,7 @@ ui = fluidPage(
                          label="Select columns to display", 
                          choices=c("date", "names", "spirits", "boards", "n_players",
                                    "adversary", "level", "scenario", "difficulty",
-                                   "archipelago_scenario", "board_layout", 
+                                   "archipelago_scenario", "board_layout", "time_taken",
                                    "victory", "invader_cards", "dahan", "blight", "score",
                                    "blighted_island", "fear_level", "expansions"),
                          selected=c("date", "spirits", "adversary", "level", 
