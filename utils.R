@@ -101,7 +101,9 @@ arrange_scoretable <- function(data) {
     mutate(across(spirit_1:spirit_6, ~ifelse(.x=="", .x, abbreviations[.x])),
            branch_claw = ifelse(branch_claw == TRUE, "BC", NA),
            jagged_earth = ifelse(jagged_earth == TRUE, "JE", NA),
-           feather_flame = ifelse(feather_flame == TRUE, "FF", NA))
+           feather_flame = ifelse(feather_flame == TRUE, "FF", NA),
+           horizons = ifelse(horizons == TRUE, "HO", NA),
+           nature_incarnate = ifelse(nature_incarnate == TRUE, "NI", NA))
   
   
   for(i in 1:6) {
@@ -116,7 +118,8 @@ arrange_scoretable <- function(data) {
   data$spirits <- apply( data[, paste0("spirit_", c(1:6)) ], 1, paste_noNA, sep=", ")
   data$names <- apply( data[, paste0("name_", c(1:6)) ], 1, paste_noNA, sep=", ")
   data$boards <- apply( data[, paste0("board_", c(1:6)) ], 1, paste_noNA, sep=", ")
-  data$expansions <- apply( data[, c("branch_claw", "jagged_earth", "feather_flame")],
+  data$expansions <- apply( data[, c("branch_claw", "jagged_earth", "feather_flame",
+                                     "horizons", "nature_incarnate")],
                             1, paste_noNA, sep=", ")
   data <- data %>% 
     dplyr::relocate(names, .after=date) %>%
@@ -126,7 +129,8 @@ arrange_scoretable <- function(data) {
               powerprog_1:powerprog_6, board_1:board_6,
               toptrack_1:toptrack_6, bottomtrack_1:bottomtrack_6,
               destroyed_1:destroyed_6,
-              branch_claw, jagged_earth, feather_flame)) %>%
+              branch_claw, jagged_earth, feather_flame,
+              horizons, nature_incarnate)) %>%
     arrange(desc(id))
 }
 
