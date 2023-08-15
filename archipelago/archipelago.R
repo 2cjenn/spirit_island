@@ -1,7 +1,4 @@
 
-arc_log <- read.csv("archipelago/arc_log.csv",
-                    na.strings = c("NA", ""),
-                    colClasses = c("artifact_unlocked" = "character"))
 scen_list <- read.csv("archipelago/scenario_list.csv", 
                       na.strings = c("NA", ""))
 unlock_list <- read.csv("archipelago/unlock_list.csv", na.strings = c("NA", ""))

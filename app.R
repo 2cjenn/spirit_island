@@ -57,6 +57,7 @@ loadcsv <- function(filepath) {
 
 mydata <- loadData()
 # mydata <- loadcsv("data.csv")
+# saveData(mydata)
 
 players <- mydata %>%
   select(id, starts_with("name"), archipelago) %>%
@@ -414,27 +415,25 @@ server = function(input, output, session) {
       drop_na(aspect_unlocked) %>%
       pull(aspect_unlocked)
     
-    # mandatory_aspect <- scen$Mandatory_Aspect
-    # restricted_aspect <- scen$Restricted_Aspect
-    # print(mandatory_aspects)
+    mandatory_aspect <- scen$Mandatory_Aspect
+    restricted_aspect <- scen$Restricted_Aspect
     
     for(n in seq(1, input$player_n, 1)) {
       if((input$jagged_earth | input$feather_flame | input$nature_incarnate) &
          input[[paste0("spirit", n)]] %in% names(aspects)) {
         choices <- aspects[[input[[paste0("spirit", n)]]]]
-        # if(!is.na(mandatory_aspect) & mandatory_aspect %in% choices) {
-        #   choices <- c(mandatory_aspects)
-        # } else if (!is.na(restricted_aspect)) {
-        #   choices <- choices[choices %in% c("None", unlocked_aspects) &
-        #                        choices != restricted_aspect]
-        # } else if (is.na())
-        choices[choices %in% c("None", unlocked_aspects)]
+        if(!is.na(mandatory_aspect) & mandatory_aspect %in% choices) {
+          choices <- c(mandatory_aspect)
+        } else if (!is.na(restricted_aspect)) {
+          choices <- choices[choices %in% c("None", unlocked_aspects) &
+                               choices != restricted_aspect]
+        } else if (is.na(restricted_aspect)) {
+          choices <- choices[choices %in% c("None", unlocked_aspects)]
+        }
         updateSelectInput(session, paste0("aspect", n),
                           choices=choices)
-        
       }
     }
-    
   })
   
   ######################
