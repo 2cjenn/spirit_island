@@ -289,12 +289,21 @@ server = function(input, output, session) {
                              label="Use flag?",
                              choices=c("None",
                                        get_flags(arc_log)),
-                             selectize=FALSE))
+                             selectize=FALSE)),
+          column(width=3,
+                 checkboxInput(inputId="scen_desc",
+                               label="Show description?",
+                               value=FALSE))
         ),
         fluidRow(
           id="scen_details",
           box(
-            uiOutput("scenario_name")
+            uiOutput("scenario_name"),
+            width=6
+          ),
+          box(
+            uiOutput("board_layout"),
+            width=4
           )
         )
       )
@@ -309,10 +318,39 @@ server = function(input, output, session) {
   
   output$scenario_name <- renderUI({
     scen <- active_scenario()
-    # print(scen)
-    HTML(paste0("<b>Name</b>: ", scen$Title,
+    recent_level <- arc_log %>%
+      slice_max(game)
+    new_level <- ifelse(recent_level$victory==TRUE,
+                        min(recent_level$adv_level + 1, 6),
+                        recent_level - 2)
+    
+    text <- paste0("<b>Name</b>: ", scen$Title,
                 "<br/>",
-                "<b>Mandatory spirits</b>: ", scen$Mandatory_Spirits))
+                   "<b>Adversary</b>: ", scen$Adversary,
+                   "<br/>",
+                   "<b>Suggested level</b>: ", new_level,
+                   "<br/>",
+                   "<b>Game Effects</b>: ", scen$Game_Effects,
+                   "<br/>",
+                   "<b>Board Layout</b>: ", scen$Board_Setup,
+                   "<br/>")
+    if(input$scen_desc==TRUE) {
+      text <- paste0(text,
+                     "<br/>",
+                     "<b>Description</b>: ",
+                     scen$Description)
+    }
+    HTML(text)
+  })
+  
+  output$board_layout = renderUI({
+    scen <- active_scenario()
+    layout <- scen$Board_Setup
+    image_name <-  paste0( layout, ".png")
+    if(layout %in% layout_options) {
+      img(src = image_name, height = '100px')
+    }
+    
   })
   
   observe({
