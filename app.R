@@ -325,12 +325,16 @@ server = function(input, output, session) {
       mandatory <- strsplit(scen$Mandatory_Spirits, split=", |,")
       mandatory <- as.list(mandatory[[1]])
       allowed_spirits[["Mandatory"]] <- mandatory
+    } else {
+      mandatory <- c()
     }
     if(scen$Restricted_Spirits != "All other spirits") {
       
       if(scen$Default_Spirits != "(none)") {
         default <- strsplit(scen$Default_Spirits, split=", |,")[[1]]
         allowed_spirits[["Default"]] <- as.list(default)
+      } else {
+        default <- c()
       }
       
       if(scen$Restricted_Spirits != "(none)") {
@@ -342,7 +346,9 @@ server = function(input, output, session) {
       
       unlocked_spirits <- arc_log %>% 
         drop_na(spirit_unlocked) %>%
-        filter(! spirit_unlocked %in% restricted) %>%
+        filter(! spirit_unlocked %in% restricted,
+               ! spirit_unlocked %in% default,
+               ! spirit_unlocked %in% mandatory) %>%
       pull(spirit_unlocked)
       
       allowed_spirits[["Unlocked"]] <- as.list(unlocked_spirits)
@@ -351,7 +357,7 @@ server = function(input, output, session) {
     for(n in seq(1, input$player_n, 1)) {
       updateSelectInput(session, paste0("spirit", n),
                         choices = allowed_spirits, 
-                        selected=unlist(allowed_spirits)[n])
+                        selected = unlist(allowed_spirits)[n])
     }
     
     # Default values for adversary, difficulty, etc
