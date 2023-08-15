@@ -606,6 +606,28 @@ server = function(input, output, session) {
       a <- unique(unlist(aspects, use.names=FALSE))
       locked_aspects <- a[! a %in% unique(arc_log$aspect_unlocked)]
       
+      div(
+        fluidRow(
+          id="victory_text",
+          hr(),
+          column(width=3,
+                 checkboxInput(inputId="victory_text",
+                               label="Show victory text?",
+                               value=FALSE)),
+          column(width=9,
+                 renderUI({
+                   scen <- active_scenario()
+                   
+                   if(input$victory_text==TRUE) {
+                     text <- paste0(scen$Victory_Text,
+                                  "<br/><br/>",
+                                  "<b>Unlocks</b>: ", scen$Unlocks,
+                                  "<br/>")
+                     HTML(text)
+                   }
+                 })
+                 )
+        ),
       fluidRow(
         id="arch",
         hr(),
