@@ -59,9 +59,13 @@ get_available <- function(arc_log, scen_list) {
 
 # Get available artifacts
 get_artifacts <- function(arc_log) {
+  if(any(!is.na(arc_log$flag_unlocked))) {
   unlocked <- strsplit(arc_log$artifact_unlocked, split=", |,") %>%
     unlist() %>%
     as.numeric()
+  } else {
+    unlocked <- c()
+  }
   used <- arc_log$artifact
   available <- unlocked[!is.na(unlocked) & !(unlocked %in% used)]
   return(sort(available))
@@ -69,9 +73,13 @@ get_artifacts <- function(arc_log) {
 
 # Get available flags
 get_flags <- function(arc_log) {
+  if(any(!is.na(arc_log$flag_unlocked))) {
   unlocked <- strsplit(arc_log$flag_unlocked, split=", |,") %>%
     unlist() %>%
     as.numeric()
+  } else {
+    unlocked <- c()
+  }
   used <- arc_log$flag[arc_log$victory==TRUE]
   available <- unlocked[!is.na(unlocked) & !(unlocked %in% used)]
   return(sort(available))
