@@ -533,17 +533,12 @@ server = function(input, output, session) {
                          choices=names(scenarios),
                          selectize=FALSE)
       ),
-      renderUI({
-        if(input$archipelago == TRUE) {
           column(width=2,
                  selectInput(inputId="layout",
                              label="Layout:",
-                             choices=c("Standard", "Coastline", 
-                                       "Opposite Shores", "Fragment", 
-                                       "Archipelago", "Thematic"),
-                             selectize=FALSE))
-        }
-      }),
+                         choices=layout_options,
+                         selectize=FALSE)
+             ),
       # Difficulty calculation
       renderUI({
         adv_diff <- adversaries[[input$adversary]][input$adv_level + 1]
