@@ -325,7 +325,7 @@ server = function(input, output, session) {
                         recent_level - 2)
     
     text <- paste0("<b>Name</b>: ", scen$Title,
-                "<br/>",
+                   "<br/>",
                    "<b>Adversary</b>: ", scen$Adversary,
                    "<br/>",
                    "<b>Suggested level</b>: ", new_level,
@@ -387,14 +387,14 @@ server = function(input, output, session) {
         filter(! spirit_unlocked %in% restricted,
                ! spirit_unlocked %in% default,
                ! spirit_unlocked %in% mandatory) %>%
-      pull(spirit_unlocked)
+        pull(spirit_unlocked)
       
       allowed_spirits[["Unlocked"]] <- as.list(unlocked_spirits)
     }
     
     for(n in seq(1, input$player_n, 1)) {
       updateSelectInput(session, paste0("spirit", n),
-                        choices = allowed_spirits, 
+                        choices = allowed_spirits,
                         selected = unlist(allowed_spirits)[n])
     }
     
@@ -408,10 +408,44 @@ server = function(input, output, session) {
     recent_level <- arc_log %>%
       slice_max(game)
     new_level <- ifelse(recent_level$victory==TRUE,
-                             min(recent_level$adv_level + 1, 6),
-                             recent_level - 2)
+                        min(recent_level$adv_level + 1, 6),
+                        recent_level - 2)
     updateNumericInput(session, "adv_level",
                        value=new_level)
+    
+  })
+  
+  # Separate observer so spirit doesn't update recursively
+  observe({
+    scen <- active_scenario()
+    arc_log <- arc()
+    
+    # Aspect
+    unlocked_aspects <- arc_log %>% 
+      drop_na(aspect_unlocked) %>%
+      pull(aspect_unlocked)
+    
+    # mandatory_aspect <- scen$Mandatory_Aspect
+    # restricted_aspect <- scen$Restricted_Aspect
+    # print(mandatory_aspects)
+    
+    for(n in seq(1, input$player_n, 1)) {
+      if((input$jagged_earth | input$feather_flame | input$nature_incarnate) &
+         input[[paste0("spirit", n)]] %in% names(aspects)) {
+        choices <- aspects[[input[[paste0("spirit", n)]]]]
+        # if(!is.na(mandatory_aspect) & mandatory_aspect %in% choices) {
+        #   choices <- c(mandatory_aspects)
+        # } else if (!is.na(restricted_aspect)) {
+        #   choices <- choices[choices %in% c("None", unlocked_aspects) &
+        #                        choices != restricted_aspect]
+        # } else if (is.na())
+        choices[choices %in% c("None", unlocked_aspects)]
+        updateSelectInput(session, paste0("aspect", n),
+                          choices=choices)
+        
+      }
+    }
+    
   })
   
   ######################
@@ -558,11 +592,11 @@ server = function(input, output, session) {
                          selectize=FALSE)
       ),
       # Level
-        column(width=2,
-                 numericInput(inputId="adv_level",
-                              label="Level:",
-                              value=0,
-                              min=0, max=6, step=1)
+      column(width=2,
+             numericInput(inputId="adv_level",
+                            label="Level:",
+                            value=0,
+                            min=0, max=6, step=1)
              ),
       # Scenario
       column(width=3,
@@ -570,10 +604,10 @@ server = function(input, output, session) {
                          label="Scenario:",
                          choices=names(scenarios),
                          selectize=FALSE)
-      ),
-          column(width=2,
-                 selectInput(inputId="layout",
-                             label="Layout:",
+             ),
+      column(width=2,
+             selectInput(inputId="layout",
+                         label="Layout:",
                          choices=layout_options,
                          selectize=FALSE)
              ),
@@ -628,39 +662,39 @@ server = function(input, output, session) {
                  })
                  )
         ),
-      fluidRow(
-        id="arch",
-        hr(),
-        column(width=2, offset=0,
-               selectInput(inputId="unlock_spirit",
-                           label="Unlock spirit?",
-                           choices=locked_spirits,
-                           selectize=FALSE)),
-        column(width=2,
-               selectInput(inputId="unlock_aspect",
-                           label="Unlock aspect?",
-                           choices=locked_aspects,
-                           selectize=FALSE)),
-        column(width=2,
-               textInput(inputId="unlock_artifacts",
-                           label="Unlock artifact?",
-                           value=NA,
-                           placeholder="Artifact(s) unlocked, comma separated")),
-        column(width=2,
-               textInput(inputId="unlock_flags",
-                           label="Unlock flag?",
-                           value=NA,
-                         placeholder="Flag(s) unlocked, comma separated")),
-        column(width=3,
-               checkboxInput(inputId="annex4",
-                             label="Annex 4?",
-                             value=FALSE)),
-        column(width=3,
-               checkboxInput(inputId="annex5",
-                             label="Annex 5?",
-                             value=FALSE))
+        fluidRow(
+          id="arch",
+          hr(),
+          column(width=2, offset=0,
+                 selectInput(inputId="unlock_spirit",
+                             label="Unlock spirit?",
+                             choices=locked_spirits,
+                             selectize=FALSE)),
+          column(width=2,
+                 selectInput(inputId="unlock_aspect",
+                             label="Unlock aspect?",
+                             choices=locked_aspects,
+                             selectize=FALSE)),
+          column(width=2,
+                 textInput(inputId="unlock_artifacts",
+                             label="Unlock artifact?",
+                             value=NA,
+                             placeholder="Artifact(s) unlocked, comma separated")),
+          column(width=2,
+                 textInput(inputId="unlock_flags",
+                             label="Unlock flag?",
+                             value=NA,
+                           placeholder="Flag(s) unlocked, comma separated")),
+          column(width=3,
+                 checkboxInput(inputId="annex4",
+                               label="Annex 4?",
+                               value=FALSE)),
+          column(width=3,
+                 checkboxInput(inputId="annex5",
+                               label="Annex 5?",
+                               value=FALSE))
+        )
       )
-      
     }
   })
   
