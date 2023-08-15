@@ -88,45 +88,13 @@ get_flags <- function(arc_log) {
   return(sort(available))
 }
 
-# Generate a row for the Archipelago Log
-gen_arcrow <- function(input, victory, arc_log) {
-  influence <- arc_log %>% 
-    slice_max(game) %>% 
-    pull(influence)
-  
-  if(input$victory == TRUE & 
-     !(input$arc_scenario %in% arc_log$scenario)) {
-    influence <- influence + 2
-  } else if (input$victory == TRUE){
-    influence <- influence + 1
-  }
-  if(input$unlock_spirit!="None") {
-    influence <- influence + 2
-  }
-  if(input$use_artifact!="None") {
-    influence <- influence - 6
-  }
-  if((input$use_flag!="None") &
-     !(input$use_flag %in% arc_log$flag)) {
-    influence <- influence - 10
-  } # If flag was used in a game that was lost, can use again
-  
-  newrow <- data.table(
-    game = max(arc_log$game) + 1,
-    date = input$date,
-    scenario = input$arc_scenario,
-    artifact = ifnone(input$use_artifact),
-    flag = ifnone(input$use_flag),
-    victory = victory,
-    influence = influence,
-    spirit_unlocked = ifnone(input$unlock_spirit),
-    aspect_unlocked = ifnone(input$unlock_aspect),
-    artifact_unlocked = input$unlock_artifacts,
-    flag_unlocked = input$unlock_flags,
-    annex4 = input$annex4,
-    annex5 = input$annex5
-  )
-  
-  return(newrow)
+
+gen_arclog <- function(data) {
+  arc_log <- data %>%
+    filter(!is.na(archipelago_scenario)) %>%
+    select(game, date, archipelago_scenario, artifact, flag,
+           victory, influence, spirit_unlocked, aspect_unlocked,
+           artifact_unlocked, flag_unlocked, annex4, annex5) %>%
+    rename(scenario = archipelago_scenario)
 }
 

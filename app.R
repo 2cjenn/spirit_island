@@ -46,7 +46,8 @@ loadData <- function(filename="data.rds") {
 }
 
 loadcsv <- function(filepath) {
-  mydata <- read.csv(filepath, na.strings = "NA")
+  mydata <- read.csv(filepath, na.strings = c("NA", ""),
+                     colClasses = c("artifact_unlocked" = "character"))
   mydata$date <- as.Date(mydata$date, tryFormats = c("%Y-%m-%d", "%d/%m/%Y"))
   mydata$id <- as.POSIXct(mydata$id, tryFormats = c("%Y-%m-%d", "%d/%m/%Y", 
                                                     "%Y-%m-%d %H:%M:%S", 
@@ -54,19 +55,8 @@ loadcsv <- function(filepath) {
   return(mydata)
 }
 
-loadarc <- function(filepath) {
-  arc_log <- read.csv(filepath,
-                      na.strings = c("NA", ""),
-                      colClasses = c("artifact_unlocked" = "character")) %>%
-    mutate(date = as.Date(date, tryFormats = c("%Y-%m-%d", "%d/%m/%Y")))
-  return(arc_log)
-}
-
 mydata <- loadData()
 # mydata <- loadcsv("data.csv")
-
-arc_log <- loadData("arc_log.rds")
-# arc_log <- loadarc("archipelago/arc_log.csv")
 
 players <- mydata %>%
   select(id, starts_with("name"), archipelago) %>%
@@ -245,7 +235,6 @@ ui = fluidPage(
     ),
     tabPanel("Backup",
              downloadButton("downloadData", "Download"),
-             downloadButton("downloadArc", "Download Archipelago"),
              fileInput("file1", "Choose CSV File",
                        multiple = TRUE,
                        accept = c("text/csv",
@@ -267,7 +256,7 @@ server = function(input, output, session) {
   output$Archipelago <- renderUI({
     if(input$archipelago) {
       
-      arc_log <- arc()
+      arc_log <- gen_arclog(df())
       
       div(
         fluidRow(
@@ -355,7 +344,7 @@ server = function(input, output, session) {
   
   observe({
     scen <- active_scenario()
-    arc_log <- arc()
+    arc_log <- gen_arclog(df())
     
     # Available spirits
     allowed_spirits <- list()
@@ -418,7 +407,7 @@ server = function(input, output, session) {
   # Separate observer so spirit doesn't update recursively
   observe({
     scen <- active_scenario()
-    arc_log <- arc()
+    arc_log <- gen_arclog(df())
     
     # Aspect
     unlocked_aspects <- arc_log %>% 
@@ -632,7 +621,7 @@ server = function(input, output, session) {
   output$Archipelago_unlocks <- renderUI({
     if(input$archipelago) {
       
-      arc_log <- arc()
+      arc_log <- gen_arclog(df())
       
       s <- unlist(spirit_list, use.names=FALSE)
       locked_spirits <- c("None", s[! s %in% unique(arc_log$spirit_unlocked)])
@@ -703,17 +692,11 @@ server = function(input, output, session) {
     if(input$victory>0){
       score <- (5 * difficulty) + 10 + (2 * input$invader_cards) +
         floor(input$dahan/input$player_n) - floor(input$blight/input$player_n)
-      newrow <- gen_datarow(input, victory=TRUE, score=score, difficulty=difficulty)
+      newrow <- gen_datarow(input, data=mydata, victory=TRUE, score=score, difficulty=difficulty)
       
       mydata <<- rbind(mydata, newrow)
     }
     saveData(mydata)
-    
-    if(input$archipelago) {
-      newrow <- gen_arcrow(input, victory=TRUE, arc_log)
-      arc_log <<- rbind(arc_log, newrow)
-      saveData(arc_log, "arc_log.rds")
-    }
     
     showNotification(paste0("Well Done! Score of ", score, " recorded"))
   })
@@ -722,17 +705,11 @@ server = function(input, output, session) {
     if(input$defeat>0){
       score <- (2 * difficulty) + input$invader_cards +
         floor(input$dahan/input$player_n) - floor(input$blight/input$player_n)
-      newrow <- gen_datarow(input, victory=FALSE, score=score, difficulty=difficulty)
+      newrow <- gen_datarow(input, data=mydata, victory=FALSE, score=score, difficulty=difficulty)
       
       mydata <<- rbind(mydata, newrow)
     }
     saveData(mydata)
-    
-    if(input$archipelago) {
-      newrow <- gen_arcrow(input, victory=FALSE, arc_log)
-      arc_log <<- rbind(arc_log, newrow)
-      saveData(arc_log, "arc_log.rds")
-    }
     
     showNotification(paste0("Better luck next time! Score of ", score, " recorded"))
   })
@@ -822,7 +799,7 @@ server = function(input, output, session) {
   ###############
   
   output$available <- renderUI({
-    arc_log <- arc()
+    arc_log <- gen_arclog(df())
     
     available_scenarios <- get_available(arc_log, scen_list)
     
@@ -834,7 +811,6 @@ server = function(input, output, session) {
     
     fluidRow(
       id="arch",
-      hr(),
       renderText(paste0("Available scenarios: ", paste0(available_scenarios, collapse=", "))),
       renderText(paste0("Unlocked spirits: ", paste0(unlocked_spirits, collapse=", "))),
       renderText(paste0("Unlocked aspects: ", paste0(unlocked_aspects, collapse=", "))),
@@ -844,7 +820,7 @@ server = function(input, output, session) {
   })
   
   output$artifacts <- DT::renderDataTable({
-    arc_log <- arc()
+    arc_log <- gen_arclog(df())
     available <- get_artifacts(arc_log)
     artifacts_csv %>% 
       filter(Artifact %in% available) %>%
@@ -856,7 +832,8 @@ server = function(input, output, session) {
   rownames=FALSE, escape=FALSE)
   
   output$flags <- DT::renderDataTable({
-    arc_log <- arc()
+
+    arc_log <- gen_arclog(df())
     available <- get_flags(arc_log)
     flags_csv %>% 
       filter(Flag %in% available) %>%
@@ -868,8 +845,9 @@ server = function(input, output, session) {
   rownames=FALSE, escape=FALSE)
   
   output$archipelago_log <- DT::renderDataTable({
-    arc_log <- arc()
-    arc_log %>% arrange(desc(game))
+    arc_log <- gen_arclog(df())
+    arc_log %>% arrange(desc(game)) %>%
+      select(-artifact_unlocked, -flag_unlocked, -annex4, -annex5)
   },
   options=list(
     pageLength=5),
@@ -885,13 +863,6 @@ server = function(input, output, session) {
     filename = paste0("spiritisland_data_", format(Sys.Date(), "%Y%m%d"), ".csv"),
     content = function(file) {
       write.csv(mydata, file, row.names = FALSE)
-    }
-  )
-  
-  output$downloadArc <- downloadHandler(
-    filename = paste0("archipelago_data_", format(Sys.Date(), "%Y%m%d"), ".csv"),
-    content = function(file) {
-      write.csv(arc_log, file, row.names = FALSE, na="")
     }
   )
   
