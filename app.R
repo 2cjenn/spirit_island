@@ -520,20 +520,12 @@ server = function(input, output, session) {
                          selectize=FALSE)
       ),
       # Level
-      renderUI({
         column(width=2,
-               if(input$adversary != "None") {
                  numericInput(inputId="adv_level",
                               label="Level:",
                               value=0,
                               min=0, max=6, step=1)
-               } else {
-                 numericInput(inputId="adv_level",
-                              label="Level:",
-                              value=0,
-                              min=0, max=0)
-               })
-      }),
+             ),
       # Scenario
       column(width=3,
              selectInput(inputId="scenario",
