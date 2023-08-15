@@ -15,7 +15,9 @@ library(DT)
 library(data.table)
 library(bslib)
 library(plotly)
+library(stringr)
 library(shinyTime)
+library(shinydashboard)
 
 # Spirit info ------------------------------------------------------------------
 
@@ -267,29 +269,105 @@ server = function(input, output, session) {
       
       arc_log <- arc()
       
-      fluidRow(
-        id="arch",
-        hr(),
-        column(width=2, offset=0,
-               selectInput(inputId="arc_scenario",
-                           label="Scenario:",
-                           choices=get_available(arc_log, scen_list),
-                           selectize=FALSE)),
-        column(width=2,
-               selectInput(inputId="use_artifact",
-                           label="Use artifact?",
-                           choices=c("None", 
-                                     get_artifacts(arc_log)),
-                           selectize=FALSE)),
-        column(width=2,
-               selectInput(inputId="use_flag",
-                           label="Use flag?",
-                           choices=c("None",
-                                     get_flags(arc_log)),
-                           selectize=FALSE))
+      div(
+        fluidRow(
+          id="arch",
+          hr(),
+          column(width=2, offset=0,
+                 selectInput(inputId="arc_scenario",
+                             label="Scenario:",
+                             choices=get_available(arc_log, scen_list),
+                             selectize=FALSE)),
+          column(width=2,
+                 selectInput(inputId="use_artifact",
+                             label="Use artifact?",
+                             choices=c("None", 
+                                       get_artifacts(arc_log)),
+                             selectize=FALSE)),
+          column(width=2,
+                 selectInput(inputId="use_flag",
+                             label="Use flag?",
+                             choices=c("None",
+                                       get_flags(arc_log)),
+                             selectize=FALSE))
+        ),
+        fluidRow(
+          id="scen_details",
+          box(
+            uiOutput("scenario_name")
+          )
+        )
       )
       
     }
+  })
+  active_scenario <- reactive(
+    scen_details[scen_details$Number == input$arc_scenario, , drop=TRUE]
+  ) %>% 
+    bindEvent(input$arc_scenario)
+  
+  
+  output$scenario_name <- renderUI({
+    scen <- active_scenario()
+    # print(scen)
+    HTML(paste0("<b>Name</b>: ", scen$Title,
+                "<br/>",
+                "<b>Mandatory spirits</b>: ", scen$Mandatory_Spirits))
+  })
+  
+  observe({
+    scen <- active_scenario()
+    arc_log <- arc()
+    
+    # Available spirits
+    allowed_spirits <- list()
+    if(scen$Mandatory_Spirits != "(none)") {
+      mandatory <- strsplit(scen$Mandatory_Spirits, split=", |,")
+      mandatory <- as.list(mandatory[[1]])
+      allowed_spirits[["Mandatory"]] <- mandatory
+    }
+    if(scen$Restricted_Spirits != "All other spirits") {
+      
+      if(scen$Default_Spirits != "(none)") {
+        default <- strsplit(scen$Default_Spirits, split=", |,")[[1]]
+        allowed_spirits[["Default"]] <- as.list(default)
+      }
+      
+      if(scen$Restricted_Spirits != "(none)") {
+        restricted <- strsplit(scen$Restricted_Spirits, split=", |,")
+        restricted <- restricted[[1]]
+      } else {
+        restricted <- c()
+      }
+      
+      unlocked_spirits <- arc_log %>% 
+        drop_na(spirit_unlocked) %>%
+        filter(! spirit_unlocked %in% restricted) %>%
+      pull(spirit_unlocked)
+      
+      allowed_spirits[["Unlocked"]] <- as.list(unlocked_spirits)
+    }
+    
+    for(n in seq(1, input$player_n, 1)) {
+      updateSelectInput(session, paste0("spirit", n),
+                        choices = allowed_spirits, 
+                        selected=unlist(allowed_spirits)[n])
+    }
+    
+    # Default values for adversary, difficulty, etc
+    updateSelectInput(session, "adversary",
+                      selected = scen$Adversary)
+    
+    updateSelectInput(session, "layout",
+                      selected = scen$Board_Setup)
+    
+    recent_level <- arc_log %>%
+      slice_max(game)
+    new_level <- ifelse(recent_level$victory==TRUE,
+                             min(recent_level$adv_level + 1, 6),
+                             recent_level - 2)
+    updateNumericInput(session, "adv_level",
+                       value=new_level)
   })
   
   ######################
@@ -464,7 +542,7 @@ server = function(input, output, session) {
                              label="Layout:",
                              choices=c("Standard", "Coastline", 
                                        "Opposite Shores", "Fragment", 
-                                       "Archipelago"),
+                                       "Archipelago", "Thematic"),
                              selectize=FALSE))
         }
       }),

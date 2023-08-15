@@ -9,6 +9,9 @@ unlock_list <- read.csv("archipelago/unlock_list.csv", na.strings = c("NA", ""))
 artifacts_csv <- read.csv("archipelago/artifacts.csv")
 flags_csv <- read.csv("archipelago/flags.csv")
 
+# From https://docs.google.com/spreadsheets/d/1Cy4_-0aJF41YPp2FJwYWPRiO5hJZKvx03589FJg_pEw/edit#gid=1650379336
+scen_details <- read.csv("archipelago/scenario_details.csv", na.strings=c("NA", ""))
+
 # Check for completed scenarios
 get_complete <- function(arc_log) {
   victory <- arc_log %>% 
@@ -60,9 +63,9 @@ get_available <- function(arc_log, scen_list) {
 # Get available artifacts
 get_artifacts <- function(arc_log) {
   if(any(!is.na(arc_log$flag_unlocked))) {
-  unlocked <- strsplit(arc_log$artifact_unlocked, split=", |,") %>%
-    unlist() %>%
-    as.numeric()
+    unlocked <- strsplit(arc_log$artifact_unlocked, split=", |,") %>%
+      unlist() %>%
+      as.numeric()
   } else {
     unlocked <- c()
   }
@@ -74,9 +77,9 @@ get_artifacts <- function(arc_log) {
 # Get available flags
 get_flags <- function(arc_log) {
   if(any(!is.na(arc_log$flag_unlocked))) {
-  unlocked <- strsplit(arc_log$flag_unlocked, split=", |,") %>%
-    unlist() %>%
-    as.numeric()
+    unlocked <- strsplit(arc_log$flag_unlocked, split=", |,") %>%
+      unlist() %>%
+      as.numeric()
   } else {
     unlocked <- c()
   }
