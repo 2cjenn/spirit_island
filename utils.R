@@ -64,10 +64,33 @@ gen_players <- function(input, unique_id) {
 
 # Merge the player data with the general game data to form one row
 # Wide format for storage
-gen_datarow <- function(input, victory, score, difficulty){
+gen_datarow <- function(input, data, victory, score, difficulty){
   unique_id <- Sys.time()
   
   players <- gen_players(input, unique_id)
+  
+  arc_log <- gen_arclog(data)
+  
+  influence <- arc_log %>% 
+    slice_max(game) %>% 
+    pull(influence)
+  
+  if(input$victory == TRUE & 
+     !(input$arc_scenario %in% arc_log$scenario)) {
+    influence <- influence + 2
+  } else if (input$victory == TRUE){
+    influence <- influence + 1
+  }
+  if(input$unlock_spirit!="None") {
+    influence <- influence + 2
+  }
+  if(input$use_artifact!="None") {
+    influence <- influence - 6
+  }
+  if((input$use_flag!="None") &
+     !(input$use_flag %in% arc_log$flag)) {
+    influence <- influence - 10
+  } # If flag was used in a game that was lost, can use again
   
   newrow = data.table(id = unique_id,
                       date = input$date,
@@ -77,6 +100,7 @@ gen_datarow <- function(input, victory, score, difficulty){
                       scenario = input$scenario,
                       difficulty = difficulty,
                       archipelago_scenario = ifelse(input$archipelago, input$arc_scenario, ""),
+                      board_layout = input$layout,
                       victory = victory,
                       invader_cards = input$invader_cards,
                       dahan = input$dahan,
@@ -85,12 +109,35 @@ gen_datarow <- function(input, victory, score, difficulty){
                       #invisible
                       blighted_island = input$blighted_island,
                       fear_level = input$fear_level,
+                      total_wipe = input$total_wipe,
+                      time_taken = strftime(input$time_taken, "%R"),
                       branch_claw = input$branch_claw,
                       jagged_earth = input$jagged_earth,
                       feather_flame = input$feather_flame,
                       horizons = input$horizons,
                       nature_incarnate = input$nature_incarnate,
-                      archipelago = input$archipelago
+                      archipelago = input$archipelago,
+                      # rows for archipelago
+                      game = ifelse(input$archipelago, 
+                                    max(arc_log$game) + 1, ""),
+                      artifact = ifelse(input$archipelago, 
+                                        ifnone(input$use_artifact), ""),
+                      flag = ifelse(input$archipelago, 
+                                    ifnone(input$use_flag), ""),
+                      influence = ifelse(input$archipelago, 
+                                         influence, ""),
+                      spirit_unlocked = ifelse(input$archipelago, 
+                                               ifnone(input$unlock_spirit), ""),
+                      aspect_unlocked = ifelse(input$archipelago, 
+                                               ifnone(input$unlock_aspect), ""),
+                      artifact_unlocked = ifelse(input$archipelago, 
+                                                 input$unlock_artifacts, ""),
+                      flag_unlocked = ifelse(input$archipelago, 
+                                             input$unlock_flags, ""),
+                      annex4 = ifelse(input$archipelago, 
+                                      input$annex4, ""),
+                      annex5 = ifelse(input$archipelago, 
+                                      input$annex5, "")
   )
   
   row = merge.data.table(players, newrow, by.x=c("id"), by.y=c("id"))
@@ -105,7 +152,9 @@ arrange_scoretable <- function(data) {
     mutate(across(spirit_1:spirit_6, ~ifelse(.x=="", .x, abbreviations[.x])),
            branch_claw = ifelse(branch_claw == TRUE, "BC", NA),
            jagged_earth = ifelse(jagged_earth == TRUE, "JE", NA),
-           feather_flame = ifelse(feather_flame == TRUE, "FF", NA))
+           feather_flame = ifelse(feather_flame == TRUE, "FF", NA),
+           horizons = ifelse(horizons == TRUE, "HO", NA),
+           nature_incarnate = ifelse(nature_incarnate == TRUE, "NI", NA))
   
   
   for(i in 1:6) {
@@ -120,7 +169,8 @@ arrange_scoretable <- function(data) {
   data$spirits <- apply( data[, paste0("spirit_", c(1:6)) ], 1, paste_noNA, sep=", ")
   data$names <- apply( data[, paste0("name_", c(1:6)) ], 1, paste_noNA, sep=", ")
   data$boards <- apply( data[, paste0("board_", c(1:6)) ], 1, paste_noNA, sep=", ")
-  data$expansions <- apply( data[, c("branch_claw", "jagged_earth", "feather_flame")],
+  data$expansions <- apply( data[, c("branch_claw", "jagged_earth", "feather_flame",
+                                     "horizons", "nature_incarnate")],
                             1, paste_noNA, sep=", ")
   data <- data %>% 
     dplyr::relocate(names, .after=date) %>%
@@ -130,7 +180,8 @@ arrange_scoretable <- function(data) {
               powerprog_1:powerprog_6, board_1:board_6,
               toptrack_1:toptrack_6, bottomtrack_1:bottomtrack_6,
               destroyed_1:destroyed_6,
-              branch_claw, jagged_earth, feather_flame)) %>%
+              branch_claw, jagged_earth, feather_flame,
+              horizons, nature_incarnate)) %>%
     arrange(desc(id))
 }
 
