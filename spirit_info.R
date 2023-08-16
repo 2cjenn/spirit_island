@@ -31,6 +31,10 @@ scenarios <- list("None"=0,
                   "Rituals of Terror"=3,
                   "Dahan Insurrection"=4)
 
+layout_options <- c("Standard", "Coastline", 
+                    "Opposite Shores", "Fragment", 
+                    "Archipelago", "Thematic")
+
 # Expansion packs --------------------------------------------------------------
 
 # Branch and Claw

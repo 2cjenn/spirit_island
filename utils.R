@@ -64,10 +64,33 @@ gen_players <- function(input, unique_id) {
 
 # Merge the player data with the general game data to form one row
 # Wide format for storage
-gen_datarow <- function(input, victory, score, difficulty){
+gen_datarow <- function(input, data, victory, score, difficulty){
   unique_id <- Sys.time()
   
   players <- gen_players(input, unique_id)
+  
+  arc_log <- gen_arclog(data)
+  
+  influence <- arc_log %>% 
+    slice_max(game) %>% 
+    pull(influence)
+  
+  if(input$victory == TRUE & 
+     !(input$arc_scenario %in% arc_log$scenario)) {
+    influence <- influence + 2
+  } else if (input$victory == TRUE){
+    influence <- influence + 1
+  }
+  if(input$unlock_spirit!="None") {
+    influence <- influence + 2
+  }
+  if(input$use_artifact!="None") {
+    influence <- influence - 6
+  }
+  if((input$use_flag!="None") &
+     !(input$use_flag %in% arc_log$flag)) {
+    influence <- influence - 10
+  } # If flag was used in a game that was lost, can use again
   
   newrow = data.table(id = unique_id,
                       date = input$date,
@@ -77,6 +100,7 @@ gen_datarow <- function(input, victory, score, difficulty){
                       scenario = input$scenario,
                       difficulty = difficulty,
                       archipelago_scenario = ifelse(input$archipelago, input$arc_scenario, ""),
+                      board_layout = input$layout,
                       victory = victory,
                       invader_cards = input$invader_cards,
                       dahan = input$dahan,
@@ -85,13 +109,34 @@ gen_datarow <- function(input, victory, score, difficulty){
                       #invisible
                       blighted_island = input$blighted_island,
                       fear_level = input$fear_level,
-                      time_taken = ifelse(input$time_taken==0, NA, strftime(input$time_taken, "%R")),
+                      time_taken = strftime(input$time_taken, "%R"),
                       branch_claw = input$branch_claw,
                       jagged_earth = input$jagged_earth,
                       feather_flame = input$feather_flame,
                       horizons = input$horizons,
                       nature_incarnate = input$nature_incarnate,
-                      archipelago = input$archipelago
+                      archipelago = input$archipelago,
+                      # rows for archipelago
+                      game = ifelse(input$archipelago, 
+                                    max(arc_log$game) + 1, ""),
+                      artifact = ifelse(input$archipelago, 
+                                        ifnone(input$use_artifact), ""),
+                      flag = ifelse(input$archipelago, 
+                                    ifnone(input$use_flag), ""),
+                      influence = ifelse(input$archipelago, 
+                                         influence, ""),
+                      spirit_unlocked = ifelse(input$archipelago, 
+                                               ifnone(input$unlock_spirit), ""),
+                      aspect_unlocked = ifelse(input$archipelago, 
+                                               ifnone(input$unlock_aspect), ""),
+                      artifact_unlocked = ifelse(input$archipelago, 
+                                                 input$unlock_artifacts, ""),
+                      flag_unlocked = ifelse(input$archipelago, 
+                                             input$unlock_flags, ""),
+                      annex4 = ifelse(input$archipelago, 
+                                      input$annex4, ""),
+                      annex5 = ifelse(input$archipelago, 
+                                      input$annex5, "")
   )
   
   row = merge.data.table(players, newrow, by.x=c("id"), by.y=c("id"))
