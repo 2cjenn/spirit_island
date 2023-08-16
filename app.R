@@ -144,6 +144,10 @@ ui = fluidPage(
                column(width=2,
                       checkboxInput(inputId="blighted_island",
                                     label="Blighted Island?",
+                                    value=FALSE)),
+               column(width=2,
+                      checkboxInput(inputId="total_wipe",
+                                    label="Total board wipe?",
                                     value=FALSE))
                ),
              fluidRow(

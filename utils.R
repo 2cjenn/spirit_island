@@ -109,6 +109,7 @@ gen_datarow <- function(input, data, victory, score, difficulty){
                       #invisible
                       blighted_island = input$blighted_island,
                       fear_level = input$fear_level,
+                      total_wipe = input$total_wipe,
                       time_taken = strftime(input$time_taken, "%R"),
                       branch_claw = input$branch_claw,
                       jagged_earth = input$jagged_earth,
