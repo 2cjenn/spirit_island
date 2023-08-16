@@ -52,6 +52,7 @@ loadcsv <- function(filepath) {
   mydata$id <- as.POSIXct(mydata$id, tryFormats = c("%Y-%m-%d", "%d/%m/%Y", 
                                                     "%Y-%m-%d %H:%M:%S", 
                                                     "%d/%m/%Y %H:%M:%S"))
+  mydata$time_taken <- as.difftime(paste0(mydata$time_taken, ":00"), units = "hours")
   return(mydata)
 }
 
@@ -228,6 +229,10 @@ ui = fluidPage(
              plotlyOutput("time_score", inline=TRUE),
              plotlyOutput("games_since_spirit", inline=TRUE),
              plotlyOutput("games_since_adversary", inline=TRUE),
+             
+             plotlyOutput("avgstat_by_adv", inline=TRUE),
+             plotlyOutput("rates_by_adv", inline=TRUE),
+             
              # Global plots
              # https://community.rstudio.com/t/plotly-fixed-ratio/94447/5
              div(style="width:100%;height:0;padding-top:100%;position:relative;",
@@ -822,6 +827,10 @@ server = function(input, output, session) {
   output$time_score <- renderPlotly(time_score(df_player()))
   output$games_since_spirit <- renderPlotly(games_since_spirit(df_player()))
   output$games_since_adversary <- renderPlotly(games_since_adversary(df_player()))
+  
+  output$avgstat_by_adv <- renderPlotly(avgstat_by_adv(df_player()))
+  output$rates_by_adv <- renderPlotly(rates_by_adv(df_player())) 
+  
   
   # Global plots
   output$spirit_friends <- renderPlotly(spirit_friends(players_long(df())))
