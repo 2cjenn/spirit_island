@@ -329,6 +329,7 @@ server = function(input, output, session) {
   
   output$scenario_name <- renderUI({
     scen <- active_scenario()
+    arc_log <- gen_arclog(df())
     recent_level <- arc_log %>%
       slice_max(game)
     new_level <- ifelse(recent_level$victory==TRUE,
@@ -740,10 +741,6 @@ server = function(input, output, session) {
   
   df <- eventReactive(c(input$victory, input$defeat), {
     data.frame(mydata)
-  })
-  
-  arc <- eventReactive(c(input$victory, input$defeat), {
-    data.frame(arc_log)
   })
   
   # Show the previous responses
