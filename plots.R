@@ -153,6 +153,7 @@ avgstat_by_adv <- function(player_data) {
   games <- player_data %>% 
     group_by(id) %>%
     filter(row_number()==1) %>%
+    mutate(time_taken = as.difftime(paste0(time_taken, ":00"), units = "hours")) %>%
     group_by(adversary) %>%
     summarise(Level = mean(level),
               Difficulty = mean(difficulty),

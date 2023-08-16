@@ -52,7 +52,7 @@ loadcsv <- function(filepath) {
   mydata$id <- as.POSIXct(mydata$id, tryFormats = c("%Y-%m-%d", "%d/%m/%Y", 
                                                     "%Y-%m-%d %H:%M:%S", 
                                                     "%d/%m/%Y %H:%M:%S"))
-  mydata$time_taken <- as.difftime(paste0(mydata$time_taken, ":00"), units = "hours")
+  # mydata$time_taken <- as.difftime(paste0(mydata$time_taken, ":00"), units = "hours")
   return(mydata)
 }
 
