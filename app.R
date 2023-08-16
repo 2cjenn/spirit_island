@@ -52,6 +52,7 @@ loadcsv <- function(filepath) {
   mydata$id <- as.POSIXct(mydata$id, tryFormats = c("%Y-%m-%d", "%d/%m/%Y", 
                                                     "%Y-%m-%d %H:%M:%S", 
                                                     "%d/%m/%Y %H:%M:%S"))
+  mydata$time_taken <- as.difftime(paste0(mydata$time_taken, ":00"), units = "hours")
   return(mydata)
 }
 
@@ -60,7 +61,7 @@ mydata <- loadData()
 # saveData(mydata)
 
 players <- mydata %>%
-  select(id, starts_with("name"), archipelago) %>%
+  select(id, starts_with("name"), archipelago, adversary, scenario) %>%
   pivot_longer(cols=paste0("name_", 1:6)) %>%
   filter(!is.na(value) & value != "")
 
@@ -195,16 +196,28 @@ ui = fluidPage(
     tabPanel("Plots",
              fluidRow(
                id="victory",
-               column(width=6,
+               column(width=3,
                       selectInput(inputId="filter_player",
                                   label="Player:",
                                   choices=c("All", "T & J", unique(players$value)),
                                   selected="All",
                                   selectize=FALSE)),
-               column(width=6,
+               column(width=3,
                       selectInput(inputId="filter_archipelago",
                                   label="Games:",
                                   choices=c("All", "Archipelago only", "Non-Archipelago"),
+                                  selected="All",
+                                  selectize=FALSE)),
+               column(width=3,
+                      selectInput(inputId="filter_adversary",
+                                  label="Adversary:",
+                                  choices=c("All", unique(players$adversary)),
+                                  selected="All",
+                                  selectize=FALSE)),
+               column(width=3,
+                      selectInput(inputId="filter_scenario",
+                                  label="Scenario:",
+                                  choices=c("All", unique(players$scenario)),
                                   selected="All",
                                   selectize=FALSE))
              ),
@@ -216,6 +229,10 @@ ui = fluidPage(
              plotlyOutput("time_score", inline=TRUE),
              plotlyOutput("games_since_spirit", inline=TRUE),
              plotlyOutput("games_since_adversary", inline=TRUE),
+             
+             plotlyOutput("avgstat_by_adv", inline=TRUE),
+             plotlyOutput("rates_by_adv", inline=TRUE),
+             
              # Global plots
              # https://community.rstudio.com/t/plotly-fixed-ratio/94447/5
              div(style="width:100%;height:0;padding-top:100%;position:relative;",
@@ -767,22 +784,39 @@ server = function(input, output, session) {
       data <- data %>%
         filter(archipelago == FALSE)
     }
+    if(input$filter_adversary != "All") {
+      data <- data %>%
+        filter(adversary == input$filter_adversary)
+    }
+    if(input$filter_scenario != "All") {
+      data <- data %>%
+        filter(scenario == input$filter_scenario)
+    }
     data <- data %>% 
       arrange(desc(id)) %>%
       mutate(game = seq.int(nrow(.)))
     return(data)
   }) %>% 
     bindEvent(input$victory, input$defeat, 
-              input$filter_player, input$filter_archipelago)
+              input$filter_player, input$filter_archipelago,
+              input$filter_adversary, input$filter_scenario)
   
   observe({
     players <- df() %>%
-      select(id, starts_with("name"), archipelago) %>%
+      select(id, starts_with("name"), archipelago, adversary, scenario) %>%
       pivot_longer(cols=paste0("name_", 1:6)) %>%
       filter(!is.na(value) & value != "")
 
     updateSelectInput(session, "filter_player",
                       choices = c("All", "T & J", unique(players$value)),
+                      selected = "All")
+    
+    updateSelectInput(session, "filter_adversary",
+                      choices = c("All",  unique(players$adversary)),
+                      selected = "All")
+    
+    updateSelectInput(session, "filter_scenario",
+                      choices = c("All", unique(players$scenario)),
                       selected = "All")
     
   })
@@ -793,6 +827,10 @@ server = function(input, output, session) {
   output$time_score <- renderPlotly(time_score(df_player()))
   output$games_since_spirit <- renderPlotly(games_since_spirit(df_player()))
   output$games_since_adversary <- renderPlotly(games_since_adversary(df_player()))
+  
+  output$avgstat_by_adv <- renderPlotly(avgstat_by_adv(df_player()))
+  output$rates_by_adv <- renderPlotly(rates_by_adv(df_player())) 
+  
   
   # Global plots
   output$spirit_friends <- renderPlotly(spirit_friends(players_long(df())))

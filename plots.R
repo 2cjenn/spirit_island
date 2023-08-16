@@ -24,17 +24,26 @@ fixed_jitter <- function (x, factor = 1, amount = NULL) {
 popular_spirit <- function(player_data) {
   spirits <- player_data %>% 
     filter(!is.na(spirit) & spirit != "") %>%
-    count(spirit) %>%
-    mutate(spirit = fct_reorder(spirit, n))
+    add_count(spirit) %>%
+    mutate(spirit = fct_reorder(spirit, n),
+           name = factor(name)) %>%
+    count(spirit, name) %>%
+    mutate(text = paste0(name, ": ", n))
   
-  plot_ly(
-    data = spirits,
-    x = ~spirit, y = ~n,
-    color = ~spirit, colors = spirit_colours,
-    type = "bar",
-    showlegend=FALSE
+  plot_ly(data = spirits) %>%
+    add_trace(
+      x = ~spirit, y = ~n,
+      # text = ~text,
+      hoverinfo = 'text',
+      hovertext = paste(spirits$name,
+                        ": ", spirits$n),
+      color = ~spirit, colors = spirit_colours,
+      type = "bar",
+      showlegend=FALSE,
+      marker=list(line=list(color="white", width=1))
   ) %>%
-    layout(title = "Popularity of each spirit")
+    layout(barmode = "stack",
+           title = "Popularity of each spirit")
 }
 
 #-------------------------------------------------------------------------------
@@ -134,6 +143,63 @@ games_since_adversary <- function(player_data) {
     layout(title = "Time since playing each adversary")
   
 }
+
+
+#-------------------------------------------------------------------------------
+
+# Average stats per adversary
+
+avgstat_by_adv <- function(player_data) {
+  games <- player_data %>% 
+    group_by(id) %>%
+    filter(row_number()==1) %>%
+    group_by(adversary) %>%
+    summarise(Level = mean(level),
+              Difficulty = mean(difficulty),
+              # Score = mean(score),
+              Duration = mean(as.numeric(time_taken), na.rm=TRUE),
+              Blight = mean(blight/n_players, na.rm=TRUE),
+              `Fear Level` = mean(fear_level, na.rm=TRUE),
+              `Invader Cards` = mean(invader_cards, na.rm=TRUE),
+              .groups="drop") %>%
+    pivot_longer(cols = !adversary, names_to="stat", values_to="mean") %>%
+    mutate(mean = round(mean, 2),
+           stat = factor(stat, levels=c("Level", "Difficulty", 
+                                        "Duration", "Invader Cards", 
+                                        "Fear Level", "Blight")),
+           adversary = factor(adversary, levels=names(adversary_colours)))
+  
+ 
+    plot_ly(data=games, x = ~stat, y = ~mean, type = 'bar', 
+            color = ~adversary,
+            colors = adversary_colours) %>%
+      layout(title = "Average (mean) stats by adversary")
+}
+
+
+# Rates
+
+rates_by_adv <- function(player_data) {
+  games <- player_data %>% 
+    group_by(id) %>%
+    filter(row_number()==1) %>%
+    group_by(adversary) %>%
+    summarise(`Win` = 100*sum(victory==TRUE)/n(),
+              `Blighted Island` = 100*sum(blighted_island==TRUE)/n(),
+              `With Scenario` = 100*sum(scenario!="None")/n(),
+              .groups="drop") %>%
+    pivot_longer(cols = !adversary, names_to="stat", values_to="rate") %>%
+    mutate(rate = round(rate, 2),
+           stat = factor(stat, levels=c("Win", "Blighted Island", "With Scenario")),
+           adversary = factor(adversary, levels=names(adversary_colours)))
+  
+  
+  plot_ly(data=games, x = ~stat, y = ~rate, type = 'bar', 
+          color = ~adversary,
+          colors = adversary_colours) %>%
+    layout(title = "Rate (%) by adversary")
+}
+
 
 #-------------------------------------------------------------------------------
 
