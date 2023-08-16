@@ -60,7 +60,7 @@ mydata <- loadData()
 # saveData(mydata)
 
 players <- mydata %>%
-  select(id, starts_with("name"), archipelago) %>%
+  select(id, starts_with("name"), archipelago, adversary, scenario) %>%
   pivot_longer(cols=paste0("name_", 1:6)) %>%
   filter(!is.na(value) & value != "")
 
@@ -195,16 +195,28 @@ ui = fluidPage(
     tabPanel("Plots",
              fluidRow(
                id="victory",
-               column(width=6,
+               column(width=3,
                       selectInput(inputId="filter_player",
                                   label="Player:",
                                   choices=c("All", "T & J", unique(players$value)),
                                   selected="All",
                                   selectize=FALSE)),
-               column(width=6,
+               column(width=3,
                       selectInput(inputId="filter_archipelago",
                                   label="Games:",
                                   choices=c("All", "Archipelago only", "Non-Archipelago"),
+                                  selected="All",
+                                  selectize=FALSE)),
+               column(width=3,
+                      selectInput(inputId="filter_adversary",
+                                  label="Adversary:",
+                                  choices=c("All", unique(players$adversary)),
+                                  selected="All",
+                                  selectize=FALSE)),
+               column(width=3,
+                      selectInput(inputId="filter_scenario",
+                                  label="Scenario:",
+                                  choices=c("All", unique(players$scenario)),
                                   selected="All",
                                   selectize=FALSE))
              ),
@@ -767,22 +779,39 @@ server = function(input, output, session) {
       data <- data %>%
         filter(archipelago == FALSE)
     }
+    if(input$filter_adversary != "All") {
+      data <- data %>%
+        filter(adversary == input$filter_adversary)
+    }
+    if(input$filter_scenario != "All") {
+      data <- data %>%
+        filter(scenario == input$filter_scenario)
+    }
     data <- data %>% 
       arrange(desc(id)) %>%
       mutate(game = seq.int(nrow(.)))
     return(data)
   }) %>% 
     bindEvent(input$victory, input$defeat, 
-              input$filter_player, input$filter_archipelago)
+              input$filter_player, input$filter_archipelago,
+              input$filter_adversary, input$filter_scenario)
   
   observe({
     players <- df() %>%
-      select(id, starts_with("name"), archipelago) %>%
+      select(id, starts_with("name"), archipelago, adversary, scenario) %>%
       pivot_longer(cols=paste0("name_", 1:6)) %>%
       filter(!is.na(value) & value != "")
 
     updateSelectInput(session, "filter_player",
                       choices = c("All", "T & J", unique(players$value)),
+                      selected = "All")
+    
+    updateSelectInput(session, "filter_adversary",
+                      choices = c("All",  unique(players$adversary)),
+                      selected = "All")
+    
+    updateSelectInput(session, "filter_scenario",
+                      choices = c("All", unique(players$scenario)),
                       selected = "All")
     
   })
