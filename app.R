@@ -186,7 +186,7 @@ ui = fluidPage(
                                    "adversary", "level", "scenario", "difficulty",
                                    "archipelago_scenario", "board_layout", "time_taken",
                                    "victory", "invader_cards", "dahan", "blight", "score",
-                                   "blighted_island", "fear_level", "expansions"),
+                                   "blighted_island", "fear_level", "total_wipe", "expansions"),
                          selected=c("date", "spirits", "adversary", "level", 
                                     "scenario", "difficulty", "victory", "score"),
                          multiple=TRUE),

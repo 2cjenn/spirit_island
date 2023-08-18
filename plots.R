@@ -188,10 +188,12 @@ rates_by_adv <- function(player_data) {
     summarise(`Win` = 100*sum(victory==TRUE)/n(),
               `Blighted Island` = 100*sum(blighted_island==TRUE)/n(),
               `With Scenario` = 100*sum(scenario!="None")/n(),
+              `Total Wipe` = 100*sum(total_wipe)/n(),
               .groups="drop") %>%
     pivot_longer(cols = !adversary, names_to="stat", values_to="rate") %>%
     mutate(rate = round(rate, 2),
-           stat = factor(stat, levels=c("Win", "Blighted Island", "With Scenario")),
+           stat = factor(stat, levels=c("Win", "Blighted Island", 
+                                        "With Scenario", "Total Wipe")),
            adversary = factor(adversary, levels=names(adversary_colours)))
   
   
