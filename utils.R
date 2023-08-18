@@ -205,6 +205,7 @@ arrange_scoretable <- function(data) {
               destroyed_1:destroyed_6,
               branch_claw, jagged_earth, feather_flame,
               horizons, nature_incarnate)) %>%
+    mutate(id = format(id, "%Y%m%d%H%M")) %>%
     arrange(desc(id))
 }
 
@@ -214,6 +215,7 @@ arrange_scoretable <- function(data) {
 players_long <- function(data){
   
   player_data <- data %>%
+    mutate(id = format(id, "%Y%m%d%H%M")) %>%
     arrange(desc(id)) %>%
     mutate(game = seq.int(nrow(.)),
            across(powerprog_1:destroyed_6, ~as.character(.x))) %>%

@@ -49,10 +49,7 @@ loadcsv <- function(filepath) {
   mydata <- read.csv(filepath, na.strings = c("NA", ""),
                      colClasses = c("artifact_unlocked" = "character"))
   mydata$date <- as.Date(mydata$date, tryFormats = c("%Y-%m-%d", "%d/%m/%Y"))
-  mydata$id <- as.POSIXct(mydata$id, tryFormats = c("%Y-%m-%d", "%d/%m/%Y", 
-                                                    "%Y-%m-%d %H:%M:%S", 
-                                                    "%d/%m/%Y %H:%M:%S"))
-  # mydata$time_taken <- as.difftime(paste0(mydata$time_taken, ":00"), units = "hours")
+  mydata$id <- as.POSIXct(mydata$id, format = c("%Y-%m-%d %H:%M:%S"))
   return(mydata)
 }
 
@@ -750,6 +747,7 @@ server = function(input, output, session) {
     data <- df()
     
     data <- arrange_scoretable(data)
+    setorder(data, -id)
     
     if (!is.null(input$columns)) {
       columns = input$columns
