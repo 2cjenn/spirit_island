@@ -227,6 +227,7 @@ ui <- function(req) {
              plotlyOutput("time_score", inline=TRUE),
              plotlyOutput("games_since_spirit", inline=TRUE),
              plotlyOutput("games_since_adversary", inline=TRUE),
+             plotlyOutput("adversary_pie", inline=TRUE),
              
              plotlyOutput("avgstat_by_adv", inline=TRUE),
              plotlyOutput("rates_by_adv", inline=TRUE),
@@ -822,6 +823,7 @@ server = function(input, output, session) {
   output$time_score <- renderPlotly(time_score(df_player()))
   output$games_since_spirit <- renderPlotly(games_since_spirit(df_player()))
   output$games_since_adversary <- renderPlotly(games_since_adversary(df_player()))
+  output$adversary_pie <- renderPlotly(adversary_pie(df_player()))
   
   output$avgstat_by_adv <- renderPlotly(avgstat_by_adv(df_player()))
   output$rates_by_adv <- renderPlotly(rates_by_adv(df_player())) 

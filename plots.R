@@ -144,6 +144,26 @@ games_since_adversary <- function(player_data) {
   
 }
 
+adversary_pie <- function(player_data) {
+  games <- player_data %>%
+    select(id, adversary, game_no) %>%
+    group_by(id) %>%
+    slice_min(game_no, n=1, with_ties=FALSE) %>%
+    ungroup %>%
+    count(adversary) %>%
+    arrange(desc(n))
+  
+  adv_cols <- adversary_colours[games$adversary]
+    
+  plot_ly(
+    data = games,
+    labels = ~adversary,
+    values = ~n,
+    type = 'pie',
+    marker = list(colors = adv_cols)
+  )
+}
+
 
 #-------------------------------------------------------------------------------
 
