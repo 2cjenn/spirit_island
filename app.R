@@ -789,8 +789,7 @@ server = function(input, output, session) {
         filter(scenario == input$filter_scenario)
     }
     data <- data %>% 
-      arrange(desc(id)) %>%
-      mutate(game_no = seq.int(nrow(.)))
+      arrange(desc(id))
     return(data)
   }) %>% 
     bindEvent(input$victory, input$defeat, 
