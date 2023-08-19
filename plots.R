@@ -79,13 +79,13 @@ difficulty_vs_score <- function(player_data) {
 
 time_score <- function(player_data) {
   scores <- player_data %>%
-    mutate(game = max(game) + 1 - game) %>%
-    select(id, date, game, score, difficulty, adversary, victory) %>%
+    mutate(game_no = max(game_no) + 1 - game_no) %>%
+    select(id, date, game_no, score, difficulty, adversary, victory) %>%
     group_by(id) %>%
     filter(row_number()==1) %>%
     ungroup
   
-  plot_ly(scores, x = ~game, y = ~score, 
+  plot_ly(scores, x = ~game_no, y = ~score, 
           color = ~adversary, colors = adversary_colours, 
           size = ~difficulty, sizes=c(10,100), fill=~'',
           text = ~paste0("Difficulty: ", difficulty),
@@ -107,13 +107,13 @@ games_since_spirit <- function(player_data) {
   games <- player_data %>%
     filter(!is.na(spirit) & spirit != "") %>%
     group_by(spirit) %>%
-    slice_min(game, n=1, with_ties=FALSE) %>%
+    slice_min(game_no, n=1, with_ties=FALSE) %>%
     ungroup %>%
-      mutate(spirit = fct_reorder(spirit, game))
+      mutate(spirit = fct_reorder(spirit, game_no))
   
   plot_ly(
     data = games,
-    y = ~spirit, x = ~game,
+    y = ~spirit, x = ~game_no,
     color = ~spirit, colors = spirit_colours,
     type = "bar",
     orientation = "h",
@@ -125,16 +125,16 @@ games_since_spirit <- function(player_data) {
 
 games_since_adversary <- function(player_data) {
   games <- player_data %>%
-    select(id, adversary, game) %>%
+    select(id, adversary, game_no) %>%
     filter(adversary != "None") %>%
     group_by(adversary) %>%
-    slice_min(game, n=1, with_ties=FALSE) %>%
+    slice_min(game_no, n=1, with_ties=FALSE) %>%
     ungroup %>%
-    mutate(adversary = fct_reorder(adversary, game))
+    mutate(adversary = fct_reorder(adversary, game_no))
   
   plot_ly(
     data = games,
-    y = ~adversary, x = ~game,
+    y = ~adversary, x = ~game_no,
     color = ~adversary, colors = adversary_colours,
     type = "bar",
     orientation = "h",
@@ -210,7 +210,7 @@ rates_by_adv <- function(player_data) {
 
 spirit_friends <- function(player_data) {
   data <- player_data %>%
-    select(game, spirit, n_players) %>%
+    select(game_no, spirit, n_players) %>%
     filter(spirit != "") %>%
     mutate(spirit_short = abbreviations[spirit])
   
@@ -218,10 +218,10 @@ spirit_friends <- function(player_data) {
   text_rows <- list()
   
   for (s in unique(data$spirit_short)) {
-    games <- data$game[data$spirit_short == s]
+    games <- data$game_no[data$spirit_short == s]
     
     friends <- data %>% 
-      filter(game %in% games & spirit_short != s & spirit_short != "") %>%
+      filter(game_no %in% games & spirit_short != s & spirit_short != "") %>%
       mutate(weight = 1/factorial(n_players)) %>%
       group_by(spirit_short, spirit) %>%
       summarize(weight.sum = sum(weight), .groups="drop_last") %>%

@@ -217,7 +217,7 @@ players_long <- function(data){
   player_data <- data %>%
     mutate(id = format(id, "%Y%m%d%H%M")) %>%
     arrange(desc(id)) %>%
-    mutate(game = seq.int(nrow(.)),
+    mutate(game_no = seq.int(nrow(.)),
            across(powerprog_1:destroyed_6, ~as.character(.x))) %>%
     pivot_longer(
       cols = c(

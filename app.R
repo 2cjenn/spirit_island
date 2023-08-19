@@ -71,7 +71,8 @@ players <- mydata %>%
 # https://shiny.rstudio.com/articles/html-tags.html - text formatting
 # https://shiny.rstudio.com/tutorial/written-tutorial/lesson3/ - widget types
 # https://github.com/rstudio/shiny/issues/1927 - keyboard in select on mobile
-ui = fluidPage(
+ui <- function(req) {
+  fluidPage(
   # theme = bs_theme(version = 5, bootswatch = "minty"),
   tabsetPanel(
     tabPanel("Enter results",
@@ -262,7 +263,7 @@ ui = fluidPage(
     )
   )
   
-)
+)}
 
 
 server = function(input, output, session) {
@@ -789,7 +790,7 @@ server = function(input, output, session) {
     }
     data <- data %>% 
       arrange(desc(id)) %>%
-      mutate(game = seq.int(nrow(.)))
+      mutate(game_no = seq.int(nrow(.)))
     return(data)
   }) %>% 
     bindEvent(input$victory, input$defeat, 
