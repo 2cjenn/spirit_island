@@ -268,6 +268,8 @@ ui <- function(req) {
 
 
 server = function(input, output, session) {
+  session$allowReconnect(TRUE)
+  
   iv <- InputValidator$new()
   
   ######################
