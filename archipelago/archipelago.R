@@ -89,9 +89,10 @@ get_flags <- function(arc_log) {
 gen_arclog <- function(data) {
   arc_log <- data %>%
     filter(!is.na(archipelago_scenario)) %>%
-    select(game, date, archipelago_scenario, artifact, flag,
+    select(game, date, archipelago_scenario, level, artifact, flag,
            victory, influence, spirit_unlocked, aspect_unlocked,
            artifact_unlocked, flag_unlocked, annex4, annex5) %>%
-    rename(scenario = archipelago_scenario)
+    rename(scenario = archipelago_scenario,
+           adv_level = level)
 }
 

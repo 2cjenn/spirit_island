@@ -332,8 +332,7 @@ server = function(input, output, session) {
     recent_level <- arc_log %>%
       slice_max(game)
     new_level <- ifelse(recent_level$victory==TRUE,
-                        min(recent_level$adv_level + 1, 6),
-                        recent_level - 2)
+                        min(recent_level$adv_level + 1, 6), recent_level$adv_level - 2)
     
     text <- paste0("<b>Name</b>: ", scen$Title,
                    "<br/>",
@@ -420,7 +419,7 @@ server = function(input, output, session) {
       slice_max(game)
     new_level <- ifelse(recent_level$victory==TRUE,
                         min(recent_level$adv_level + 1, 6),
-                        recent_level - 2)
+                        recent_level$adv_level - 2)
     updateNumericInput(session, "adv_level",
                        value=new_level)
     
