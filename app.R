@@ -372,12 +372,10 @@ server = function(input, output, session) {
         restricted <- c()
       }
       
-      unlocked_spirits <- arc_log %>% 
-        drop_na(spirit_unlocked) %>%
-        filter(! spirit_unlocked %in% restricted,
-               ! spirit_unlocked %in% default,
-               ! spirit_unlocked %in% mandatory) %>%
-        pull(spirit_unlocked)
+      unlocked_spirits <- get_spirits(arc_log)
+      unlocked_spirits <- unlocked_spirits[! unlocked_spirits %in% restricted &
+                                             ! unlocked_spirits %in% default &
+                                             ! unlocked_spirits %in% mandatory]
       
       allowed_spirits[["Unlocked"]] <- as.list(unlocked_spirits)
     }
@@ -623,7 +621,7 @@ server = function(input, output, session) {
       arc_log <- gen_arclog(df())
       
       s <- unlist(spirit_list, use.names=FALSE)
-      locked_spirits <- c("None", s[! s %in% unique(arc_log$spirit_unlocked)])
+      locked_spirits <- c("None", s[! s %in% get_spirits(arc_log)])
       
       a <- unique(unlist(aspects, use.names=FALSE))
       locked_aspects <- a[! a %in% unique(arc_log$aspect_unlocked)]
@@ -803,7 +801,7 @@ server = function(input, output, session) {
     available_scenarios <- get_available(arc_log, scen_list)
     
     s <- unlist(spirit_list, use.names=FALSE)
-    unlocked_spirits <- s[s %in% unique(arc_log$spirit_unlocked)]
+    unlocked_spirits <- s[s %in% get_spirits(arc_log)]
     
     a <- unique(unlist(aspects, use.names=FALSE))
     unlocked_aspects <- a[a %in% unique(arc_log$aspect_unlocked)]
