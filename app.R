@@ -45,16 +45,20 @@ loadData <- function(filename="data.rds") {
   return(data)
 }
 
-loadcsv <- function(filepath) {
+loadcsv <- function(filepath, manual=FALSE) {
   mydata <- read.csv(filepath, na.strings = c("NA", ""),
                      colClasses = c("artifact_unlocked" = "character"))
   mydata$date <- as.Date(mydata$date, tryFormats = c("%Y-%m-%d", "%d/%m/%Y"))
-  mydata$id <- as.POSIXct(mydata$id, format = c("%Y-%m-%d %H:%M:%S"))
+  if(manual==TRUE) {
+    mydata$id <- strptime(mydata$id, "%d/%m/%Y %H:%M")
+  } else {
+    mydata$id <- strptime(mydata$id, "%Y/%m/%d %H:%M:%S")
+  }
   return(mydata)
 }
 
 mydata <- loadData()
-# mydata <- loadcsv("data.csv")
+# mydata <- loadcsv("data.csv", manual=TRUE)
 # saveData(mydata)
 
 players <- mydata %>%
@@ -899,7 +903,7 @@ server = function(input, output, session) {
   output$downloadData <- downloadHandler(
     filename = paste0("spiritisland_data_", format(Sys.Date(), "%Y%m%d"), ".csv"),
     content = function(file) {
-      write.csv(mydata, file, row.names = FALSE)
+      write.csv(mydata %>% mutate(id=format(id, "%Y/%m/%d %H:%M:%S")), file, row.names = FALSE)
     }
   )
   
