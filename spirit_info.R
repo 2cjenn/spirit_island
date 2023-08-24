@@ -133,6 +133,9 @@ ni_scenarios <- list("Surges of Colonization"=2,
                      "Larger Surges of Colonization"=7,
                      "Destiny Unfolds"=-1)
 
+# Combine ----------------------------------------------------------------------
+
+all_aspects <- c(aspect_list, je_aspects, ff_aspects, ni_aspects)
 
 # Shorthands -------------------------------------------------------------------
 

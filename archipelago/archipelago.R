@@ -36,9 +36,7 @@ get_available <- function(arc_log, scen_list) {
     pull(ID) %>%
     unique()
   
-  unlocked_spirits <- arc_log %>%
-    drop_na(spirit_unlocked) %>%
-    pull(spirit_unlocked)
+  unlocked_spirits <- get_spirits(arc_log)
   
   available <- scen_list %>%
     separate(spirits, into=c("req1", "req2"), sep=", ", remove=FALSE) %>%
@@ -55,7 +53,25 @@ get_available <- function(arc_log, scen_list) {
   return(available)
 }
 
-# get_available(scen_list, arc_log)
+# Get available spirits
+get_spirits <- function(arc_log) {
+  unlocked <- c()
+  if(any(!is.na(arc_log$spirit_unlocked))) {
+    unlocked <- arc_log %>%
+      drop_na(spirit_unlocked) %>%
+      pull(spirit_unlocked)
+  }
+  aspect_unlocks <- c()
+  if(any(!is.na(arc_log$aspect_unlocked))) {
+    aspects <- arc_log %>%
+      drop_na(aspect_unlocked) %>%
+      pull(aspect_unlocked)
+    aspect_unlocks <- sapply(aspects, function(y) 
+      names(all_aspects[sapply(all_aspects, function(x) y %in% x)]))
+  }
+  available <- unique(c(unlocked, aspect_unlocks))
+  return(available)
+}
 
 # Get available artifacts
 get_artifacts <- function(arc_log) {
