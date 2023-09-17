@@ -595,45 +595,69 @@ server = function(input, output, session) {
       scenarios <- c(scenarios, ni_scenarios)
     }
     
-    fluidRow(
-      # Adversary 
-      column(width=2,
-             selectInput(inputId="adversary",
-                         label="Adversary:",
-                         choices=names(adversaries),
-                         selectize=FALSE)
-      ),
-      # Level
-      column(width=2,
-             numericInput(inputId="adv_level",
+    div(
+      fluidRow(
+        # Adversary 
+        column(width=3,
+               selectInput(inputId="adversary",
+                           label="Adversary:",
+                           choices=names(adversaries),
+                           selectize=FALSE)
+        ),
+        # Level
+        column(width=2,
+               numericInput(inputId="adv_level",
+                              label="Level:",
+                              value=0,
+                              min=0, max=6, step=1)
+               ),
+        # Adversary TWO
+        column(width=3,
+               selectInput(inputId="adversary2",
+                           label="Second Adversary:",
+                           choices=names(adversaries),
+                           selectize=FALSE)
+               ),
+       column(width=2,
+               numericInput(inputId="adv2_level",
                             label="Level:",
                             value=0,
                             min=0, max=6, step=1)
-             ),
-      # Scenario
-      column(width=3,
-             selectInput(inputId="scenario",
-                         label="Scenario:",
-                         choices=names(scenarios),
-                         selectize=FALSE)
-             ),
-      column(width=2,
-             selectInput(inputId="layout",
-                         label="Layout:",
-                         choices=layout_options,
-                         selectize=FALSE)
-             ),
-      # Difficulty calculation
-      renderUI({
-        adv_diff <- adversaries[[input$adversary]][input$adv_level + 1]
-        scen_diff <- scenarios[[input$scenario]]
-        difficulty <<- adv_diff + scen_diff
+               )
+        ),
+      fluidRow(
+        # Scenario
+        column(width=3,
+               selectInput(inputId="scenario",
+                           label="Scenario:",
+                           choices=names(scenarios),
+                           selectize=FALSE)
+               ),
         column(width=2,
-               # https://community.rstudio.com/t/fluidrow-and-column-add-border-to-the-respective-block/13187/2
-               style = "background-color: whitesmoke;",
-               strong("Difficulty:"),
-               helpText(difficulty))
-      })
+               selectInput(inputId="layout",
+                           label="Layout:",
+                           choices=layout_options,
+                           selectize=FALSE)
+               ),
+        # Difficulty calculation
+        renderUI({
+          # Adversary
+          adv_diff <- adversaries[[input$adversary]][input$adv_level + 1]
+          adv2_diff <- adversaries[[input$adversary2]][input$adv2_level + 1]
+          # The combined Difficulty of two Adversaries is said to be roughly equal 
+          # to the higher of the two Difficulties plus 50-75% of the lower
+          adv_overall <- max(adv_diff, adv2_diff) + round(0.6 * min(adv_diff, adv2_diff))
+          # Scenario
+          scen_diff <- scenarios[[input$scenario]]
+          # Total
+          difficulty <<- adv_overall + scen_diff
+          column(width=2,
+                 # https://community.rstudio.com/t/fluidrow-and-column-add-border-to-the-respective-block/13187/2
+                 style = "background-color: whitesmoke;",
+                 strong("Difficulty:"),
+                 helpText(difficulty))
+        })
+      )
     )
   })
   
