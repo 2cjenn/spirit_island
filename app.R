@@ -57,6 +57,7 @@ loadcsv <- function(filepath) {
 
 mydata <- loadData()
 # mydata <- loadcsv("data.csv")
+# mydata <- loadcsv("data.csv", manual=TRUE)
 # saveData(mydata)
 
 players <- mydata %>%

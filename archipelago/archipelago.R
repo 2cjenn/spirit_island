@@ -69,7 +69,14 @@ get_spirits <- function(arc_log) {
     aspect_unlocks <- sapply(aspects, function(y) 
       names(all_aspects[sapply(all_aspects, function(x) y %in% x)]))
   }
-  available <- unique(c(unlocked, aspect_unlocks))
+  scenario_unlocks <- c()
+  if(33 %in% arc_log$scenario[arc_log$victory==TRUE]){
+    scenario_unlocks <- c(scenario_unlocks, "Heart of the Wildfire")
+  }
+  if(55 %in% arc_log$scenario[arc_log$victory==TRUE]){
+    scenario_unlocks <- c(scenario_unlocks, "Serpent Slumbering Beneath the Island")
+  }
+  available <- unique(c(unlocked, aspect_unlocks, scenario_unlocks))
   return(available)
 }
 
