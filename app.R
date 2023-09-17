@@ -58,6 +58,7 @@ loadcsv <- function(filepath, manual=FALSE) {
 }
 
 mydata <- loadData()
+# mydata <- loadcsv("data.csv")
 # mydata <- loadcsv("data.csv", manual=TRUE)
 # saveData(mydata)
 
