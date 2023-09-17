@@ -45,22 +45,24 @@ loadData <- function(filename="data.rds") {
   return(data)
 }
 
-loadcsv <- function(filepath) {
+loadcsv <- function(filepath, manual=FALSE) {
   mydata <- read.csv(filepath, na.strings = c("NA", ""),
                      colClasses = c("artifact_unlocked" = "character"))
   mydata$date <- as.Date(mydata$date, tryFormats = c("%Y-%m-%d", "%d/%m/%Y"))
-  mydata$id <- as.POSIXct(mydata$id, tryFormats = c("%Y-%m-%d", "%d/%m/%Y", 
-                                                    "%Y-%m-%d %H:%M:%S", 
-                                                    "%d/%m/%Y %H:%M:%S"))
+  if(manual==TRUE) {
+    mydata$id <- strptime(mydata$id, "%d/%m/%Y %H:%M")
+  } else {
+    mydata$id <- strptime(mydata$id, "%Y/%m/%d %H:%M:%S")
+  }
   return(mydata)
 }
 
 mydata <- loadData()
-# mydata <- loadcsv("data.csv")
+# mydata <- loadcsv("data.csv", manual=TRUE)
 # saveData(mydata)
 
 players <- mydata %>%
-  select(id, starts_with("name"), archipelago) %>%
+  select(id, starts_with("name"), archipelago, adversary, scenario) %>%
   pivot_longer(cols=paste0("name_", 1:6)) %>%
   filter(!is.na(value) & value != "")
 
@@ -73,7 +75,8 @@ players <- mydata %>%
 # https://shiny.rstudio.com/articles/html-tags.html - text formatting
 # https://shiny.rstudio.com/tutorial/written-tutorial/lesson3/ - widget types
 # https://github.com/rstudio/shiny/issues/1927 - keyboard in select on mobile
-ui = fluidPage(
+ui <- function(req) {
+  fluidPage(
   # theme = bs_theme(version = 5, bootswatch = "minty"),
   tabsetPanel(
     tabPanel("Enter results",
@@ -185,7 +188,7 @@ ui = fluidPage(
                                    "adversary", "level", "scenario", "difficulty",
                                    "archipelago_scenario", "board_layout", "time_taken",
                                    "victory", "invader_cards", "dahan", "blight", "score",
-                                   "blighted_island", "fear_level", "expansions"),
+                                   "blighted_island", "fear_level", "total_wipe", "expansions"),
                          selected=c("date", "spirits", "adversary", "level", 
                                     "scenario", "difficulty", "victory", "score"),
                          multiple=TRUE),
@@ -195,16 +198,28 @@ ui = fluidPage(
     tabPanel("Plots",
              fluidRow(
                id="victory",
-               column(width=6,
+               column(width=3,
                       selectInput(inputId="filter_player",
                                   label="Player:",
                                   choices=c("All", "T & J", unique(players$value)),
                                   selected="All",
                                   selectize=FALSE)),
-               column(width=6,
+               column(width=3,
                       selectInput(inputId="filter_archipelago",
                                   label="Games:",
                                   choices=c("All", "Archipelago only", "Non-Archipelago"),
+                                  selected="All",
+                                  selectize=FALSE)),
+               column(width=3,
+                      selectInput(inputId="filter_adversary",
+                                  label="Adversary:",
+                                  choices=c("All", unique(players$adversary)),
+                                  selected="All",
+                                  selectize=FALSE)),
+               column(width=3,
+                      selectInput(inputId="filter_scenario",
+                                  label="Scenario:",
+                                  choices=c("All", unique(players$scenario)),
                                   selected="All",
                                   selectize=FALSE))
              ),
@@ -216,6 +231,11 @@ ui = fluidPage(
              plotlyOutput("time_score", inline=TRUE),
              plotlyOutput("games_since_spirit", inline=TRUE),
              plotlyOutput("games_since_adversary", inline=TRUE),
+             plotlyOutput("adversary_pie", inline=TRUE),
+             
+             plotlyOutput("avgstat_by_adv", inline=TRUE),
+             plotlyOutput("rates_by_adv", inline=TRUE),
+             
              # Global plots
              # https://community.rstudio.com/t/plotly-fixed-ratio/94447/5
              div(style="width:100%;height:0;padding-top:100%;position:relative;",
@@ -248,10 +268,12 @@ ui = fluidPage(
     )
   )
   
-)
+)}
 
 
 server = function(input, output, session) {
+  session$allowReconnect(TRUE)
+  
   iv <- InputValidator$new()
   
   ######################
@@ -312,11 +334,11 @@ server = function(input, output, session) {
   
   output$scenario_name <- renderUI({
     scen <- active_scenario()
+    arc_log <- gen_arclog(df())
     recent_level <- arc_log %>%
       slice_max(game)
     new_level <- ifelse(recent_level$victory==TRUE,
-                        min(recent_level$adv_level + 1, 6),
-                        recent_level - 2)
+                        min(recent_level$adv_level + 1, 6), recent_level$adv_level - 2)
     
     text <- paste0("<b>Name</b>: ", scen$Title,
                    "<br/>",
@@ -376,12 +398,10 @@ server = function(input, output, session) {
         restricted <- c()
       }
       
-      unlocked_spirits <- arc_log %>% 
-        drop_na(spirit_unlocked) %>%
-        filter(! spirit_unlocked %in% restricted,
-               ! spirit_unlocked %in% default,
-               ! spirit_unlocked %in% mandatory) %>%
-        pull(spirit_unlocked)
+      unlocked_spirits <- get_spirits(arc_log)
+      unlocked_spirits <- unlocked_spirits[! unlocked_spirits %in% restricted &
+                                             ! unlocked_spirits %in% default &
+                                             ! unlocked_spirits %in% mandatory]
       
       allowed_spirits[["Unlocked"]] <- as.list(unlocked_spirits)
     }
@@ -403,7 +423,7 @@ server = function(input, output, session) {
       slice_max(game)
     new_level <- ifelse(recent_level$victory==TRUE,
                         min(recent_level$adv_level + 1, 6),
-                        recent_level - 2)
+                        recent_level$adv_level - 2)
     updateNumericInput(session, "adv_level",
                        value=new_level)
     
@@ -627,7 +647,7 @@ server = function(input, output, session) {
       arc_log <- gen_arclog(df())
       
       s <- unlist(spirit_list, use.names=FALSE)
-      locked_spirits <- c("None", s[! s %in% unique(arc_log$spirit_unlocked)])
+      locked_spirits <- c("None", s[! s %in% get_spirits(arc_log)])
       
       a <- unique(unlist(aspects, use.names=FALSE))
       locked_aspects <- a[! a %in% unique(arc_log$aspect_unlocked)]
@@ -725,10 +745,6 @@ server = function(input, output, session) {
     data.frame(mydata)
   })
   
-  arc <- eventReactive(c(input$victory, input$defeat), {
-    data.frame(arc_log)
-  })
-  
   # Show the previous responses
   # (update with current response when Submit is clicked)
   # https://stackoverflow.com/a/40812507
@@ -736,6 +752,7 @@ server = function(input, output, session) {
     data <- df()
     
     data <- arrange_scoretable(data)
+    setorder(data, -id)
     
     if (!is.null(input$columns)) {
       columns = input$columns
@@ -767,22 +784,38 @@ server = function(input, output, session) {
       data <- data %>%
         filter(archipelago == FALSE)
     }
+    if(input$filter_adversary != "All") {
+      data <- data %>%
+        filter(adversary == input$filter_adversary)
+    }
+    if(input$filter_scenario != "All") {
+      data <- data %>%
+        filter(scenario == input$filter_scenario)
+    }
     data <- data %>% 
-      arrange(desc(id)) %>%
-      mutate(game = seq.int(nrow(.)))
+      arrange(desc(id))
     return(data)
   }) %>% 
     bindEvent(input$victory, input$defeat, 
-              input$filter_player, input$filter_archipelago)
+              input$filter_player, input$filter_archipelago,
+              input$filter_adversary, input$filter_scenario)
   
   observe({
     players <- df() %>%
-      select(id, starts_with("name"), archipelago) %>%
+      select(id, starts_with("name"), archipelago, adversary, scenario) %>%
       pivot_longer(cols=paste0("name_", 1:6)) %>%
       filter(!is.na(value) & value != "")
 
     updateSelectInput(session, "filter_player",
                       choices = c("All", "T & J", unique(players$value)),
+                      selected = "All")
+    
+    updateSelectInput(session, "filter_adversary",
+                      choices = c("All",  unique(players$adversary)),
+                      selected = "All")
+    
+    updateSelectInput(session, "filter_scenario",
+                      choices = c("All", unique(players$scenario)),
                       selected = "All")
     
   })
@@ -793,6 +826,11 @@ server = function(input, output, session) {
   output$time_score <- renderPlotly(time_score(df_player()))
   output$games_since_spirit <- renderPlotly(games_since_spirit(df_player()))
   output$games_since_adversary <- renderPlotly(games_since_adversary(df_player()))
+  output$adversary_pie <- renderPlotly(adversary_pie(df_player()))
+  
+  output$avgstat_by_adv <- renderPlotly(avgstat_by_adv(df_player()))
+  output$rates_by_adv <- renderPlotly(rates_by_adv(df_player())) 
+  
   
   # Global plots
   output$spirit_friends <- renderPlotly(spirit_friends(players_long(df())))
@@ -807,7 +845,7 @@ server = function(input, output, session) {
     available_scenarios <- get_available(arc_log, scen_list)
     
     s <- unlist(spirit_list, use.names=FALSE)
-    unlocked_spirits <- s[s %in% unique(arc_log$spirit_unlocked)]
+    unlocked_spirits <- s[s %in% get_spirits(arc_log)]
     
     a <- unique(unlist(aspects, use.names=FALSE))
     unlocked_aspects <- a[a %in% unique(arc_log$aspect_unlocked)]
@@ -865,7 +903,7 @@ server = function(input, output, session) {
   output$downloadData <- downloadHandler(
     filename = paste0("spiritisland_data_", format(Sys.Date(), "%Y%m%d"), ".csv"),
     content = function(file) {
-      write.csv(mydata, file, row.names = FALSE)
+      write.csv(mydata %>% mutate(id=format(id, "%Y/%m/%d %H:%M:%S")), file, row.names = FALSE)
     }
   )
   
