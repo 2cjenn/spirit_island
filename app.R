@@ -673,10 +673,15 @@ server = function(input, output, session) {
       arc_log <- gen_arclog(df())
       
       s <- unlist(spirit_list, use.names=FALSE)
-      locked_spirits <- c("None", s[! s %in% get_spirits(arc_log)])
+      unlocked_spirits <- get_spirits(arc_log)
+      locked_spirits <- c("None", s[! s %in% unlocked_spirits])
+      unmastered_spirits <- c("None", unlocked_spirits[!unlocked_spirits %in% get_mastery(arc_log)])
       
       a <- unique(unlist(aspects, use.names=FALSE))
       locked_aspects <- a[! a %in% unique(arc_log$aspect_unlocked)]
+      
+      annex4 <- any(arc_log$annex4 == TRUE)
+      annex5 <- any(arc_log$annex5 == TRUE)
       
       div(
         fluidRow(
@@ -708,6 +713,15 @@ server = function(input, output, session) {
                              label="Unlock spirit?",
                              choices=locked_spirits,
                              selectize=FALSE)),
+          renderUI({
+            if(annex4) {
+              column(width=2, offset=0,
+                     selectInput(inputId="master_spirit",
+                                 label="Master spirit?",
+                                 choices=unmastered_spirits,
+                                 selectize=FALSE))
+            }
+          }),
           column(width=2,
                  selectInput(inputId="unlock_aspect",
                              label="Unlock aspect?",
@@ -723,14 +737,18 @@ server = function(input, output, session) {
                              label="Unlock flag?",
                              value=NA,
                            placeholder="Flag(s) unlocked, comma separated")),
-          column(width=3,
+          renderUI({
+            column(width=3,
                  checkboxInput(inputId="annex4",
                                label="Annex 4?",
-                               value=FALSE)),
-          column(width=3,
+                               value=annex4))
+            }),
+          renderUI({
+            column(width=3,
                  checkboxInput(inputId="annex5",
                                label="Annex 5?",
-                               value=FALSE))
+                               value=annex5))
+          })
         )
       )
     }
