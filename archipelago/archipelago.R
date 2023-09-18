@@ -37,16 +37,19 @@ get_available <- function(arc_log, scen_list) {
     unique()
   
   unlocked_spirits <- get_spirits(arc_log)
+  mastered_spirits <- get_mastery(arc_log)
   
   available <- scen_list %>%
     separate(spirits, into=c("req1", "req2"), sep=", ", remove=FALSE) %>%
+    separate(mastery, into=c("masreq1", "masreq2"), sep=", ", remove=FALSE) %>%
     filter(! ID %in% unavailable,
            prereq %in% complete,
            ! ID %in% complete,
-           (is.na(annex4) | TRUE %in% arc_log[["annex4"]]),
-           (is.na(spirits) | 
-              if_all(starts_with("req"), 
-                     function(x){x %in% unlocked_spirits}))) %>%
+           (is.na(annex4) & is.na(spirits) | 
+              if_all(starts_with("req"),  function(x){x %in% unlocked_spirits})) |
+             !is.na(annex4) & 
+             if_all(starts_with("masreq"),function(x){x %in% mastered_spirits})
+      ) %>%
     pull(ID) %>%
     unique()
   
