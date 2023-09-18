@@ -69,37 +69,41 @@ gen_datarow <- function(input, data, victory, score, difficulty){
   
   players <- gen_players(input, unique_id)
   
-  arc_log <- gen_arclog(data)
+  if(input$archipelago == TRUE) {
+    arc_log <- gen_arclog(data)
+    
+    influence <- arc_log %>% 
+      slice_max(game) %>% 
+      pull(influence)
+    
+    if(input$victory == TRUE & 
+       !(input$arc_scenario %in% arc_log$scenario)) {
+      influence <- influence + 2
+    } else if (input$victory == TRUE){
+      influence <- influence + 1
+    }
+    if(input$unlock_spirit!="None") {
+      influence <- influence + 2
+    }
+    if(input$use_artifact!="None") {
+      influence <- influence - 6
+    }
+    if((input$use_flag!="None") &
+       !(input$use_flag %in% arc_log$flag)) {
+      influence <- influence - 10
+    } # If flag was used in a game that was lost, can use again
+  }
   
-  influence <- arc_log %>% 
-    slice_max(game) %>% 
-    pull(influence)
-  
-  if(input$victory == TRUE & 
-     !(input$arc_scenario %in% arc_log$scenario)) {
-    influence <- influence + 2
-  } else if (input$victory == TRUE){
-    influence <- influence + 1
-  }
-  if(input$unlock_spirit!="None") {
-    influence <- influence + 2
-  }
-  if(input$use_artifact!="None") {
-    influence <- influence - 6
-  }
-  if((input$use_flag!="None") &
-     !(input$use_flag %in% arc_log$flag)) {
-    influence <- influence - 10
-  } # If flag was used in a game that was lost, can use again
   
   newrow = data.table(id = unique_id,
                       date = input$date,
                       n_players = input$player_n,
                       adversary = input$adversary,
                       level = input$adv_level,
+                      second_adversary = input$adversary2,
+                      second_level = input$adv2_level,
                       scenario = input$scenario,
                       difficulty = difficulty,
-                      archipelago_scenario = ifelse(input$archipelago, input$arc_scenario, ""),
                       board_layout = input$layout,
                       victory = victory,
                       invader_cards = input$invader_cards,
@@ -109,35 +113,57 @@ gen_datarow <- function(input, data, victory, score, difficulty){
                       #invisible
                       blighted_island = input$blighted_island,
                       fear_level = input$fear_level,
+                      total_wipe = input$total_wipe,
                       time_taken = strftime(input$time_taken, "%R"),
                       branch_claw = input$branch_claw,
                       jagged_earth = input$jagged_earth,
                       feather_flame = input$feather_flame,
                       horizons = input$horizons,
                       nature_incarnate = input$nature_incarnate,
-                      archipelago = input$archipelago,
-                      # rows for archipelago
-                      game = ifelse(input$archipelago, 
-                                    max(arc_log$game) + 1, ""),
-                      artifact = ifelse(input$archipelago, 
-                                        ifnone(input$use_artifact), ""),
-                      flag = ifelse(input$archipelago, 
-                                    ifnone(input$use_flag), ""),
-                      influence = ifelse(input$archipelago, 
-                                         influence, ""),
-                      spirit_unlocked = ifelse(input$archipelago, 
-                                               ifnone(input$unlock_spirit), ""),
-                      aspect_unlocked = ifelse(input$archipelago, 
-                                               ifnone(input$unlock_aspect), ""),
-                      artifact_unlocked = ifelse(input$archipelago, 
-                                                 input$unlock_artifacts, ""),
-                      flag_unlocked = ifelse(input$archipelago, 
-                                             input$unlock_flags, ""),
-                      annex4 = ifelse(input$archipelago, 
-                                      input$annex4, ""),
-                      annex5 = ifelse(input$archipelago, 
-                                      input$annex5, "")
-  )
+                      archipelago = input$archipelago)
+  
+  if(input$archipelago == TRUE) {
+    arc_cols <- data.table(
+      # rows for archipelago
+      archipelago_scenario = ifelse(input$archipelago, 
+                                    input$arc_scenario, ""),
+      game = ifelse(input$archipelago, 
+                    max(arc_log$game) + 1, ""),
+      artifact = ifelse(input$archipelago, 
+                        ifnone(input$use_artifact), ""),
+      flag = ifelse(input$archipelago, 
+                    ifnone(input$use_flag), ""),
+      influence = ifelse(input$archipelago, 
+                         influence, ""),
+      spirit_unlocked = ifelse(input$archipelago, 
+                               ifnone(input$unlock_spirit), ""),
+      aspect_unlocked = ifelse(input$archipelago, 
+                               ifnone(input$unlock_aspect), ""),
+      artifact_unlocked = ifelse(input$archipelago, 
+                                 input$unlock_artifacts, ""),
+      flag_unlocked = ifelse(input$archipelago, 
+                             input$unlock_flags, ""),
+      annex4 = ifelse(input$archipelago, 
+                      input$annex4, ""),
+      annex5 = ifelse(input$archipelago, 
+                      input$annex5, "")
+    )
+  } else {
+    arc_cols <- data.table(
+      archipelago_scenario = NA,
+      game = NA,
+      artifact = NA,
+      flag = NA,
+      influence = NA,
+      spirit_unlocked = NA,
+      aspect_unlocked = NA,
+      artifact_unlocked = NA,
+      flag_unlocked = NA,
+      annex4 = NA,
+      annex5 = NA
+    )
+  }
+  newrow <- cbind(newrow, arc_cols)
   
   row = merge.data.table(players, newrow, by.x=c("id"), by.y=c("id"))
   return(row)
@@ -181,6 +207,7 @@ arrange_scoretable <- function(data) {
               destroyed_1:destroyed_6,
               branch_claw, jagged_earth, feather_flame,
               horizons, nature_incarnate)) %>%
+    mutate(id = format(id, "%Y%m%d%H%M")) %>%
     arrange(desc(id))
 }
 
@@ -190,8 +217,9 @@ arrange_scoretable <- function(data) {
 players_long <- function(data){
   
   player_data <- data %>%
+    mutate(id = format(id, "%Y%m%d%H%M")) %>%
     arrange(desc(id)) %>%
-    mutate(game = seq.int(nrow(.)),
+    mutate(game_no = seq.int(nrow(.)),
            across(powerprog_1:destroyed_6, ~as.character(.x))) %>%
     pivot_longer(
       cols = c(
