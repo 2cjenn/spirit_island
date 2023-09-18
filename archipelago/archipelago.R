@@ -80,6 +80,17 @@ get_spirits <- function(arc_log) {
   return(available)
 }
 
+# Get mastered spirits
+get_mastery <- function(arc_log) {
+  mastered <- c()
+  if(any(!is.na(arc_log$spirit_mastered))) {
+    mastered <- arc_log %>%
+      drop_na(spirit_mastered) %>%
+      pull(spirit_mastered)
+  }
+  return(mastered)
+}
+
 # Get available artifacts
 get_artifacts <- function(arc_log) {
   if(any(!is.na(arc_log$flag_unlocked))) {
@@ -113,7 +124,7 @@ gen_arclog <- function(data) {
   arc_log <- data %>%
     filter(!is.na(archipelago_scenario)) %>%
     select(game, date, archipelago_scenario, level, artifact, flag,
-           victory, influence, spirit_unlocked, aspect_unlocked,
+           victory, influence, spirit_unlocked, spirit_mastered, aspect_unlocked,
            artifact_unlocked, flag_unlocked, annex4, annex5) %>%
     rename(scenario = archipelago_scenario,
            adv_level = level)
