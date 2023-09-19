@@ -9,6 +9,8 @@ flags_csv <- read.csv("archipelago/flags.csv")
 # From https://docs.google.com/spreadsheets/d/1Cy4_-0aJF41YPp2FJwYWPRiO5hJZKvx03589FJg_pEw/edit#gid=1650379336
 scen_details <- read.csv("archipelago/scenario_details.csv", na.strings=c("NA", ""))
 
+spirit_mastery <- read.csv("archipelago/spirit_mastery.csv")
+
 # Check for completed scenarios
 get_complete <- function(arc_log) {
   victory <- arc_log %>% 
