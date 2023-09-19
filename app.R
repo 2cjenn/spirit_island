@@ -257,6 +257,11 @@ ui <- function(req) {
                column(width=6,
                       dataTableOutput("flags"))
              ),
+             fluidRow(
+               id="mastery_powers",
+               column(width=12,
+                      dataTableOutput("mastery"))
+             ),
              hr(),
              dataTableOutput("archipelago_log")
     ),
@@ -924,6 +929,19 @@ server = function(input, output, session) {
       filter(Flag %in% available) %>%
       select(-Description) %>%
       mutate(Effect = str_replace_all(Effect, pattern="\\. ", replacement=".<br/>"))
+  },
+  options=list(
+    pageLength=5),
+  rownames=FALSE, escape=FALSE)
+  
+  output$mastery <- DT::renderDataTable({
+    arc_log <- gen_arclog(df())
+    mastered <- get_mastery(arc_log)
+    spirit_mastery %>%
+      filter(Spirit %in% mastered) %>%
+      select(-Challenge) %>%
+      rename(`Mastery Advantage` = Mastery_Advantage) %>%
+      arrange(Spirit)
   },
   options=list(
     pageLength=5),
