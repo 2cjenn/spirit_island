@@ -791,7 +791,7 @@ server = function(input, output, session) {
   # Reactive data #
   #################
   
-  df <- eventReactive(c(input$victory, input$defeat), {
+  df <- eventReactive(c(input$victory, input$defeat, input$file1), {
     data.frame(mydata)
   })
   
@@ -972,7 +972,8 @@ server = function(input, output, session) {
   
   # Upload
   observeEvent(input$file1, {
-    mydata <<- loadcsv(input$file1$datapath)
+    mydata <<- loadcsv(input$file1$datapath, manual=TRUE)
+    saveData(mydata)
   })
   
   
