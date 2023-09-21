@@ -85,6 +85,9 @@ gen_datarow <- function(input, data, victory, score, difficulty){
     if(input$unlock_spirit!="None") {
       influence <- influence + 2
     }
+    if(input$master_spirit!="None") {
+      influence <- influence + 2
+    }
     if(input$use_artifact!="None") {
       influence <- influence - 6
     }
