@@ -11,10 +11,7 @@ spirits <- list(
                        "Bringer of Dreams and Nightmares"
   ))
 
-aspect_list <- list("River Surges in Sunlight"=c("None"),
-                    "Vital Strength of the Earth"=c("None"),
-                    "Lightning's Swift Strike"=c("None"),
-                    "Shadows Flicker Like Flame"=c("None"))
+aspect_list <- list()
 
 powerprog_list <- list("River Surges in Sunlight",
                        "Vital Strength of the Earth",
@@ -33,6 +30,10 @@ scenarios <- list("None"=0,
                   "Guard the Isle's Heart"=0,
                   "Rituals of Terror"=3,
                   "Dahan Insurrection"=4)
+
+layout_options <- c("Standard", "Coastline", 
+                    "Opposite Shores", "Fragment", 
+                    "Archipelago", "Thematic")
 
 # Expansion packs --------------------------------------------------------------
 
@@ -132,6 +133,9 @@ ni_scenarios <- list("Surges of Colonization"=2,
                      "Larger Surges of Colonization"=7,
                      "Destiny Unfolds"=-1)
 
+# Combine ----------------------------------------------------------------------
+
+all_aspects <- c(aspect_list, je_aspects, ff_aspects, ni_aspects)
 
 # Shorthands -------------------------------------------------------------------
 
