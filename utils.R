@@ -85,6 +85,9 @@ gen_datarow <- function(input, data, victory, score, difficulty){
     if(input$unlock_spirit!="None") {
       influence <- influence + 2
     }
+    if(input$master_spirit!="None") {
+      influence <- influence + 2
+    }
     if(input$use_artifact!="None") {
       influence <- influence - 6
     }
@@ -137,6 +140,8 @@ gen_datarow <- function(input, data, victory, score, difficulty){
                          influence, ""),
       spirit_unlocked = ifelse(input$archipelago, 
                                ifnone(input$unlock_spirit), ""),
+      spirit_mastered = ifelse(input$archipelago,
+                               ifnone(input$master_spirit), ""),
       aspect_unlocked = ifelse(input$archipelago, 
                                ifnone(input$unlock_aspect), ""),
       artifact_unlocked = ifelse(input$archipelago, 
@@ -156,6 +161,7 @@ gen_datarow <- function(input, data, victory, score, difficulty){
       flag = NA,
       influence = NA,
       spirit_unlocked = NA,
+      spirit_mastered = NA,
       aspect_unlocked = NA,
       artifact_unlocked = NA,
       flag_unlocked = NA,
