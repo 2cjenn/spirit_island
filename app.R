@@ -499,6 +499,7 @@ server = function(input, output, session) {
       spirits[["Horizons of Spirit Island"]] <- ho_spirits
       powerprog_list <- c(powerprog_list, ho_powerprog)
       print(powerprog_list)
+      boards <- c(boards, "F", "G", "H")
     }
     # Nature Incarnate expansion
     if(input$nature_incarnate) {
