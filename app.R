@@ -88,19 +88,19 @@ ui <- function(req) {
                column(width=3,
                       checkboxInput(inputId="branch_claw",
                                     label="Branch and Claw?",
-                                    value=TRUE)),
+                                    value=FALSE)),
                column(width=3,
                       checkboxInput(inputId="jagged_earth",
                                     label="Jagged Earth?",
-                                    value=TRUE)),
+                                    value=FALSE)),
                column(width=3,
                       checkboxInput(inputId="feather_flame",
                                     label="Feather and Flame?",
-                                    value=TRUE)),
+                                    value=FALSE)),
                column(width=3,
                       checkboxInput(inputId="horizons",
                                     label="Horizons of Spirit Island?",
-                                    value=FALSE)),
+                                    value=TRUE)),
                column(width=3,
                       checkboxInput(inputId="nature_incarnate",
                                     label="Nature Incarnate?",
@@ -119,7 +119,7 @@ ui <- function(req) {
                                 format="dd/mm/yyyy")),
                column(width=6,
                       sliderInput("player_n", "Number of players",
-                                  1, 4, 2, step=1, ticks=FALSE))
+                                  1, 4, 1, step=1, ticks=FALSE))
              ),
              uiOutput("Archipelago"),
              hr(),
@@ -517,7 +517,7 @@ server = function(input, output, session) {
              textInput(inputId=paste0("name", x),
                        label="Name:",
                        value=switch(x,
-                                    "Thomas", "Jennifer", 
+                                    "Daddy", "", 
                                     "", "", "", "")
              ),
              # Spirit
@@ -820,10 +820,7 @@ server = function(input, output, session) {
   
   df_player <- reactive({
     data <- players_long(mydata)
-    if(input$filter_player == "T & J") {
-      data <- data %>%
-        filter(name %in% c("Thomas", "Jennifer"))
-    } else if(input$filter_player != "All") {
+    if(input$filter_player != "All") {
       data <- data %>%
         filter(name == input$filter_player)
     }
@@ -857,7 +854,7 @@ server = function(input, output, session) {
       filter(!is.na(value) & value != "")
 
     updateSelectInput(session, "filter_player",
-                      choices = c("All", "T & J", unique(players$value)),
+                      choices = c("All", unique(players$value)),
                       selected = "All")
     
     updateSelectInput(session, "filter_adversary",
