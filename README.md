@@ -35,3 +35,5 @@ shiny:
       - "/mnt/user/shiny/logs:/var/log/shiny-server"
       - "/mnt/user/shiny/mountpoints/apps:/srv/shiny-server"
 ```
+
+You'll need to delete the `.Rprofile` file from the repository before you can launch it.

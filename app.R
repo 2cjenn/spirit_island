@@ -27,8 +27,6 @@ source("spirit_info.R")
 
 source("archipelago/archipelago.R")
 
-# source("testdata.R")
-
 source("plots.R")
 
 source("utils.R")
@@ -45,11 +43,13 @@ loadData <- function(filename="data.rds") {
   return(data)
 }
 
-loadcsv <- function(filepath, manual=FALSE) {
+loadcsv <- function(filepath) {
   mydata <- read.csv(filepath, na.strings = c("NA", ""),
                      colClasses = c("artifact_unlocked" = "character"))
   mydata$date <- as.Date(mydata$date, tryFormats = c("%Y-%m-%d", "%d/%m/%Y"))
-  if(manual==TRUE) {
+  
+  # Check if file has been saved in Excel or default date format
+  if(nchar(strsplit(mydata$id[1], split="/")[[1]][1])==2) {
     mydata$id <- strptime(mydata$id, "%d/%m/%Y %H:%M")
   } else {
     mydata$id <- strptime(mydata$id, "%Y/%m/%d %H:%M:%S")
@@ -59,7 +59,6 @@ loadcsv <- function(filepath, manual=FALSE) {
 
 mydata <- loadData()
 # mydata <- loadcsv("data.csv")
-# mydata <- loadcsv("data.csv", manual=TRUE)
 # saveData(mydata)
 
 players <- mydata %>%
@@ -969,7 +968,7 @@ server = function(input, output, session) {
   
   # Upload
   observeEvent(input$file1, {
-    mydata <<- loadcsv(input$file1$datapath, manual=TRUE)
+    mydata <<- loadcsv(input$file1$datapath)
     saveData(mydata)
   })
   
