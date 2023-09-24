@@ -291,6 +291,10 @@ server = function(input, output, session) {
       
       arc_log <- gen_arclog(df())
       
+      choiceVec <- get_available(arc_log, scen_list)
+      names(choiceVec) <- paste0(choiceVec, ": ", 
+                                 scen_details$Title[scen_details$Number %in% choiceVec])
+      
       div(
         fluidRow(
           id="arch",
@@ -298,7 +302,7 @@ server = function(input, output, session) {
           column(width=2, offset=0,
                  selectInput(inputId="arc_scenario",
                              label="Scenario:",
-                             choices=get_available(arc_log, scen_list),
+                             choices=choiceVec,
                              selectize=FALSE)),
           column(width=2,
                  selectInput(inputId="use_artifact",
