@@ -186,7 +186,7 @@ ui <- function(req) {
                          label="Select columns to display", 
                          choices=c("date", "names", "spirits", "boards", "n_players",
                                    "adversary", "level", "second_adversary",
-                                   "second_level", "scenario", "difficulty",
+                                   "second_level", "scenario", "extra_board", "difficulty",
                                    "archipelago_scenario", "board_layout", "time_taken",
                                    "victory", "invader_cards", "dahan", "blight", "score",
                                    "blighted_island", "fear_level", "total_wipe", "expansions"),
@@ -596,6 +596,7 @@ server = function(input, output, session) {
     if(input$jagged_earth) {
       adversaries <- c(adversaries, je_adversaries)
       scenarios <- c(scenarios, je_scenarios)
+      boards <- c(boards, "E", "F")
     }
     if(input$feather_flame) {
       adversaries <- c(adversaries, ff_adversaries)
@@ -604,6 +605,9 @@ server = function(input, output, session) {
     if(input$nature_incarnate) {
       adversaries <- c(adversaries, ni_adversaries)
       scenarios <- c(scenarios, ni_scenarios)
+    }
+    if(input$horizons) {
+      boards <- c(boards, "F", "G", "H")
     }
     
     div(
@@ -650,6 +654,12 @@ server = function(input, output, session) {
                            choices=layout_options,
                            selectize=FALSE)
                ),
+        column(width=3,
+               selectInput(inputId="extra_board",
+                           label="Extra board:",
+                           choices=c("None", boards),
+                           selectize=FALSE)
+        ),
         # Difficulty calculation
         renderUI({
           # Adversary
@@ -660,8 +670,16 @@ server = function(input, output, session) {
           adv_overall <- max(adv_diff, adv2_diff) + round(0.6 * min(adv_diff, adv2_diff))
           # Scenario
           scen_diff <- scenarios[[input$scenario]]
+          # Extra island board
+          basic_diff <- adv_overall + scen_diff
+          board_diff <- dplyr::case_when(
+            input$extra_board == "None" ~ 0,
+            basic_diff < 3 ~ 2,
+            basic_diff < 6 ~ 3,
+            TRUE ~ 4
+          )
           # Total
-          difficulty <<- adv_overall + scen_diff
+          difficulty <<- basic_diff + board_diff
           column(width=2,
                  # https://community.rstudio.com/t/fluidrow-and-column-add-border-to-the-respective-block/13187/2
                  style = "background-color: whitesmoke;",

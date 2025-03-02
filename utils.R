@@ -106,6 +106,7 @@ gen_datarow <- function(input, data, victory, score, difficulty){
                       second_adversary = input$adversary2,
                       second_level = input$adv2_level,
                       scenario = input$scenario,
+                      extra_board = input$extra_board,
                       difficulty = difficulty,
                       board_layout = input$layout,
                       victory = victory,
